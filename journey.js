@@ -28,7 +28,7 @@ function showMapError(message) {
   clearTimeout(loadingTimer);
   loadingState = 'error';
   inputReadyAt = performance.now() + 180;
-  loader.getAnimations().forEach(animation => animation.cancel());
+  loader.style.removeProperty('opacity');
   loader.classList.remove('is-loading');
   explorer.setAttribute('data-loading', '');
   loader.hidden = false;
@@ -58,22 +58,34 @@ window.addEventListener('dolomites:error', event => showMapError(event.detail));
 window.addEventListener('dolomites:ready', () => {
   viewport.setAttribute('aria-busy', 'false');
   const remaining = Math.max(0, minimumLoadingMs - (performance.now() - loadingStartedAt));
-  loadingTimer = setTimeout(async () => {
-    const fade = reducedMotion.matches ? null : loader.animate(
-      [{opacity: 1}, {opacity: 0}],
-      {duration: loadingFadeMs, easing: 'cubic-bezier(.22,.61,.36,1)', fill: 'forwards'}
-    );
-    if (fade) await fade.finished.catch(() => {});
-    if (loadingState !== 'loading') return;
-    loader.hidden = true;
-    loader.classList.remove('is-loading');
-    explorer.removeAttribute('data-loading');
-    fade?.cancel();
-    loadingState = 'ready';
-    inputReadyAt = performance.now() + 180;
-  }, remaining);
+  loadingTimer = setTimeout(fadeLoadingScreen, remaining);
 });
 document.getElementById('retry').addEventListener('click', () => location.reload());
+
+function fadeLoadingScreen() {
+  const duration = reducedMotion.matches ? 260 : loadingFadeMs;
+  let previous;
+  let elapsed = 0;
+
+  function fadeFrame(time) {
+    if (loadingState !== 'loading') return;
+    // Keep the opacity transition visible even when rendering the first map frames delays a frame.
+    if (previous !== undefined) elapsed += Math.min(time - previous, 50);
+    previous = time;
+    loader.style.opacity = String(1 - ease(0, duration, elapsed));
+    if (elapsed < duration) {
+      requestAnimationFrame(fadeFrame);
+      return;
+    }
+    loader.hidden = true;
+    loader.style.removeProperty('opacity');
+    loader.classList.remove('is-loading');
+    explorer.removeAttribute('data-loading');
+    loadingState = 'ready';
+    inputReadyAt = performance.now() + 180;
+  }
+  requestAnimationFrame(fadeFrame);
+}
 
 function ease(start, end, progress) {
   const t = Math.max(0, Math.min(1, (progress - start) / (end - start)));
