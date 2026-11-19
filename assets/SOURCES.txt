@@ -1,0 +1,47 @@
+CENTRAL DOLOMITES, ITALY — REAL GEOGRAPHIC IMAGE
+
+Final map: dolomites-real-geographic-map.png, 4096 x 2304 pixels.
+This is a north-up, geographically registered map rendered from measured data.
+No generative image model was used to construct or reconstruct this landscape.
+No mountains, lakes, settlements or roads were inserted or relocated.
+
+Satellite image:
+Sentinel-2 cloudless 2017 by EOX IT Services GmbH.
+Contains modified Copernicus Sentinel data 2017.
+https://maps.eox.at/
+https://tiles.maps.eox.at/wms?service=WMS&request=GetCapabilities
+Layer: s2cloudless-2017_3857.
+License: Creative Commons Attribution 4.0 International.
+https://creativecommons.org/licenses/by/4.0/
+The satellite mosaic represents 2017 imagery; it is not a current aerial survey.
+
+Elevation:
+Mapzen / Tilezen Terrain Tiles, hosted as the public elevation-tiles-prod dataset on AWS.
+https://registry.opendata.aws/terrain-tiles/
+https://github.com/tilezen/joerd/blob/master/docs/formats.md
+https://github.com/tilezen/joerd/blob/master/docs/attribution.md
+Europe terrain data produced using Copernicus data and information funded by the
+European Union - EU-DEM layers. Global SRTM terrain data courtesy of USGS.
+Source tiles: N46E011.hgt.gz and N46E012.hgt.gz, sampled bilinearly.
+
+Processing:
+Uniform georeferenced orthographic projection, north up, EPSG:3857.
+Measured surface gradients provide a soft simulated northwest sunlight.
+Existing satellite vegetation colors are graded toward warm olive greens.
+No geographic deformation, generative inpainting, invented vegetation or new clouds.
+Terrain vertical scale remains 1:1. Image shading is an aesthetic cartographic
+treatment, not a reconstruction of actual sunlight at a specific date/time.
+The DEM and satellite mosaic have different source dates and finite resolution.
+
+Files:
+dolomites-real-geographic-map.png — final clean map with relief lighting.
+dolomites-real-satellite.png — original registered satellite mosaic for comparison.
+dolomites-real-labeled-check.jpg — separate reference version with landmark labels.
+dolomites-real-dem.tif — georeferenced elevation raster, metres.
+*.pgw and *.prj — world file and coordinate system for the matching PNG image.
+map-metadata.json — extent, source year, dimensions, processing and landmark coordinates.
+source-requests.json — source URLs and SHA-256 checksums.
+
+Rebuild:
+python output/build-real-dolomites.py fetch
+python output/build-real-dolomites.py render

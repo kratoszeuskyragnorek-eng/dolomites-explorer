@@ -1,0 +1,101 @@
+const form = document.getElementById('route-picker');
+const answer = document.getElementById('route-answer');
+const routeCatalog = 'https://www.altabadia.org/en/dolomites/hiking-alta-badia';
+const guideCatalog = 'https://www.altabadia.org/en/dolomites/mountain-guides-alta-badia-dolomites';
+
+const routes = [
+  {
+    title: 'Корвара — Кольфоско',
+    season: 'summer', start: 'corvara', difficulty: 'easy',
+    distance: '4,8 км', minutes: 80, ascent: 128,
+    url: `${routeCatalog}/detail/oa/hike-corvara-colfosco`
+  },
+  {
+    title: 'Корвара — плато Пралонджа',
+    season: 'summer', start: 'corvara', difficulty: 'easy',
+    distance: '13,7 км', minutes: 240, ascent: 631,
+    url: 'https://www.altabadia.org/en/tour/oadetail/oa/hike-from-corvara-to-the-col-alt-pralongia-plateau'
+  },
+  {
+    title: 'Вальпарола — Пралонджа — Сан-Кассиано',
+    season: 'summer', start: 'valparola', difficulty: 'medium',
+    distance: '14,2 км', minutes: 265, ascent: 295,
+    url: `${routeCatalog}/detail/oa/from-passo-valparola-to-pralongia-and-down-to-san-cassiano`
+  },
+  {
+    title: 'Кольфоско — Сассонгер — Ла-Вилла',
+    season: 'summer', start: 'colfosco', difficulty: 'hard',
+    distance: '12,2 км', minutes: 390, ascent: 1087,
+    url: 'https://www.altabadia.org/en/bike/cycling-tours-dolomites/detail/oa/from-colfosco-to-the-sassongher-and-gherdenacia-ending-in-la-villa-1'
+  },
+  {
+    title: 'Корвара — Кольфоско · зимняя тропа',
+    season: 'winter', start: 'corvara', difficulty: 'easy',
+    distance: '6,1 км', minutes: 101, ascent: 144,
+    url: 'https://www.altabadia.org/en/tour/oadetail/oa/winter-hike-corvara-colfosco'
+  },
+  {
+    title: 'Корвара — водопады Пишадю',
+    season: 'winter', start: 'corvara', difficulty: 'easy',
+    distance: '8,8 км', minutes: 145, ascent: 212,
+    url: 'https://www.altabadia.org/en/tour/oadetail/oa/winter-hike-corvara-pisciadu-waterfalls'
+  }
+];
+
+function chooseRoute(filters) {
+  const {season, duration, difficulty, ascent, start} = filters;
+  return routes.find(route =>
+    (!season || route.season === season) &&
+    (!start || route.start === start) &&
+    (!difficulty || route.difficulty === difficulty) &&
+    (!duration || duration === (route.minutes <= 120 ? 'short' : route.minutes <= 240 ? 'half' : 'long')) &&
+    (!ascent || ascent === (route.ascent < 250 ? 'low' : route.ascent <= 600 ? 'mid' : 'high'))
+  );
+}
+
+function appendAnswer(tag, text, href) {
+  const element = document.createElement(tag);
+  element.textContent = text;
+  if (href) element.href = href;
+  answer.append(element);
+}
+
+form.addEventListener('submit', event => {
+  event.preventDefault();
+  const filters = Object.fromEntries(new FormData(form));
+  const route = chooseRoute(filters);
+  answer.replaceChildren();
+  if (route) {
+    const hours = Math.floor(route.minutes / 60);
+    const remaining = route.minutes % 60;
+    const duration = remaining ? `${hours} ч ${remaining} мин` : `${hours} ч`;
+    appendAnswer('strong', route.title);
+    appendAnswer('p', `${route.distance} · ${duration} · ↑ ${route.ascent} м`);
+    appendAnswer('a', 'Описание и статус тропы', route.url);
+  } else {
+    appendAnswer('p', 'В подборке нет маршрута с такими параметрами.');
+    appendAnswer('a', 'Открыть каталог маршрутов', routeCatalog);
+  }
+  if (filters.format === 'guide') appendAnswer('a', 'Гиды Альта-Бадии', guideCatalog);
+});
+
+form.addEventListener('change', () => answer.replaceChildren());
+for (const link of document.querySelectorAll('[data-guide-format]')) {
+  link.addEventListener('click', () => {
+    form.elements.format.value = 'guide';
+    answer.replaceChildren();
+  });
+}
+
+const panels = Array.from(document.querySelectorAll('.gallery-panel'));
+for (const panel of panels) {
+  panel.querySelector('h3 button').addEventListener('click', () => {
+    for (const item of panels) {
+      const expanded = item === panel;
+      const button = item.querySelector('h3 button');
+      item.toggleAttribute('data-expanded', expanded);
+      button.setAttribute('aria-expanded', String(expanded));
+      document.getElementById(button.getAttribute('aria-controls')).hidden = !expanded;
+    }
+  });
+}

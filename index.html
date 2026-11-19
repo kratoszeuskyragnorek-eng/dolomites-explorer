@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="Маршрут в движении. Как лёд, вода и движение пород меняют итальянские Доломиты.">
+  <title>Маршрут в движении · Доломиты</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%2329382b'/%3E%3Cpath d='M6 29 17 10l6 12 4-7 8 14' fill='none' stroke='%23f5f2df' stroke-width='2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./styles.css?v=through-window">
+  <link rel="stylesheet" href="./assets/story/fonts/fonts.css">
+  <link rel="stylesheet" href="./journey.css?v=visible-loading">
+  <link rel="stylesheet" href="./make-it.css?v=2">
+  <script>if(new URLSearchParams(location.search).get('view')==='map')document.documentElement.classList.add('map-only');</script>
+  <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js"}}</script>
+</head>
+<body>
+  <main>
+    <section class="portal journey-only" id="intro" tabindex="-1" aria-labelledby="journey-title">
+      <div class="portal-stage">
+        <div class="portal-aperture" aria-hidden="true"></div>
+        <div class="portal-art" aria-hidden="true" data-node-id="140:400">
+          <img src="./assets/story/jagged-peaks.png" alt="" fetchpriority="high" decoding="async">
+        </div>
+        <header class="journey-header">
+          <nav aria-label="Разделы прототипа">
+            <a href="#history">История</a>
+            <a href="#explorer">Карта</a>
+            <a href="#routes">Маршруты</a>
+            <a href="#guides">Гиды</a>
+          </nav>
+          <a class="journey-wordmark" href="#intro">МАРШРУТ</a>
+          <a class="journey-pill header-routes" href="#routes">Маршруты</a>
+        </header>
+        <div class="portal-copy" data-node-id="140:408">
+          <h1 id="journey-title">Маршрут<br>в движении</h1>
+          <p>Как лёд, вода и движение пород<br>меняют итальянские Доломиты</p>
+          <a class="journey-pill portal-enter" href="#explorer">Исследовать</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="explorer" tabindex="-1" aria-label="Интерактивная объёмная карта Доломитов">
+    <div id="poster" aria-hidden="true"></div>
+    <div id="viewport" aria-busy="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <div id="markers" aria-label="Места на карте"></div>
+
+    <header class="header">
+      <a class="region" href="#" id="home" aria-label="Вернуться к общему виду">
+        <svg viewBox="0 0 48 32" aria-hidden="true"><path d="m2 28 13-24 9 17 5-10 17 17M10 14l5 4 5-4M25 19l4 3 4-3"/></svg>
+        <span>ITALIA<br><strong>ALPI ORIENTALI</strong></span>
+      </a>
+      <div class="brand"><span class="brand-eyebrow">UN VIAGGIO TRA LE MONTAGNE</span><p class="map-title">Dolomiti</p><span class="brand-subtitle">ДОЛОМИТОВЫЕ АЛЬПЫ</span></div>
+      <button id="about-open" class="text-button" aria-haspopup="dialog">О КАРТЕ <span aria-hidden="true">↗</span></button>
+    </header>
+
+    <aside class="place-card" id="place-card" hidden aria-live="polite">
+      <button id="place-close" class="card-close" aria-label="Закрыть описание места">×</button>
+      <span class="eyebrow" id="place-region"></span>
+      <h2 id="place-title"></h2>
+      <p id="place-description"></p>
+      <span class="place-coordinate" id="place-coordinate"></span>
+    </aside>
+
+    <div class="map-tools" role="toolbar" aria-label="Управление картой">
+      <button id="zoom-in" title="Приблизить" aria-label="Приблизить"><span class="zoom-symbol">+</span></button>
+      <button id="zoom-out" title="Отдалить" aria-label="Отдалить"><span class="zoom-symbol">−</span></button>
+      <span class="tool-divider"></span>
+      <button id="top-view" title="Вид сверху" aria-label="Вид сверху"><svg viewBox="0 0 24 24"><path d="m3 12 9-7 9 7-9 7Z"/><path d="m3 16 9 7 9-7" transform="translate(0 -2)"/></svg></button>
+      <button id="reset" title="Общий вид" aria-label="Сбросить камеру"><svg viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 1 8M4 4v6h6"/></svg></button>
+      <button id="fullscreen" title="Полный экран" aria-label="Полный экран"><svg viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m8 0h5v-5"/></svg></button>
+    </div>
+
+    <div class="bottom-left">
+      <button class="compass" id="compass" title="Вернуть ориентацию на север" aria-label="Повернуть карту на север"><span class="north">N</span><span id="compass-arrow">↑</span><span class="compass-tick"></span></button>
+      <div class="coordinates"><span id="camera-coordinate">46°29′ N &nbsp; 12°00′ E</span><span class="coordinate-caption">ЦЕНТРАЛЬНЫЕ ДОЛОМИТЫ</span></div>
+    </div>
+
+    <div class="explore-dock">
+      <div class="destinations" id="destinations" hidden aria-label="Выберите место"></div>
+      <button id="explore-toggle" class="explore-button" aria-expanded="false" aria-controls="destinations"><span class="explore-icon"><svg viewBox="0 0 24 24"><path d="m3 20 7-15 5 10 3-5 4 10ZM7 12l3 2 3-2"/></svg></span><span>ИССЛЕДОВАТЬ ДОЛОМИТЫ</span><span class="chevron" aria-hidden="true">⌃</span></button>
+      <div class="gesture-hint" id="gesture-hint">Водите курсором — снег тает</div>
+    </div>
+
+    <div class="bottom-right">
+      <div class="settings" id="settings" hidden>
+        <span class="eyebrow">ВИД КАРТЫ</span>
+        <div class="layer-switch" role="group" aria-label="Слой карты"><button class="active" id="layer-style" aria-pressed="true">Атмосфера</button><button id="layer-satellite" aria-pressed="false">Спутник</button></div>
+        <div class="snow-controls">
+          <label class="check-row"><input type="checkbox" id="snow-enabled" checked><span>Зимний слой</span></label>
+          <label class="check-row"><input type="checkbox" id="snow-brush" checked><span>Таяние под курсором</span></label>
+          <button id="snow-reset" type="button">Вернуть снег</button>
+        </div>
+        <label class="check-row"><input type="checkbox" id="show-markers" checked><span>Места на карте</span></label>
+        <label class="check-row"><input type="checkbox" id="auto-rotate"><span>Медленный облёт</span></label>
+        <label class="relief-label" for="relief">Высота рельефа <output id="relief-value">×1</output></label>
+        <input type="range" id="relief" min="1" max="3" step="0.25" value="1" aria-label="Масштаб высоты рельефа">
+        <span class="settings-note">×1 — реальные пропорции</span>
+      </div>
+      <button id="settings-toggle" class="settings-button" aria-expanded="false" aria-controls="settings" title="Настройки вида" aria-label="Настройки вида"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 1v3m0 16v3M1 12h3m16 0h3M4.2 4.2l2.1 2.1m11.4 11.4 2.1 2.1m0-15.6-2.1 2.1M6.3 17.7l-2.1 2.1"/></svg></button>
+    </div>
+
+    <footer class="credits"><a href="https://maps.eox.at/" target="_blank" rel="noopener noreferrer">© EOX · Copernicus Sentinel-2 2017</a><span> / </span><a href="https://registry.opendata.aws/terrain-tiles/" target="_blank" rel="noopener noreferrer">Рельеф: Mapzen · EU-DEM · USGS</a></footer>
+
+    <div class="loading" id="loading">
+      <div class="loading-emblem" aria-hidden="true"></div>
+      <div class="loading-status" role="status"><span id="loading-message">Загрузка…</span></div>
+      <div class="loading-recovery" hidden><p>Проверь подключение и поддержку WebGL в браузере.</p><button id="retry" type="button">Попробовать снова</button><a id="fallback" href="./assets/styled.webp">Открыть изображение карты</a></div>
+    </div>
+    <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
+    </section>
+
+    <div id="history" class="journey-only journey-story" tabindex="-1">
+      <section class="chapter relief-chapter" aria-labelledby="relief-title" data-node-id="140:719">
+        <img class="chapter-image" src="./assets/story/golden-relief.png" alt="" loading="lazy" decoding="async">
+        <div class="chapter-content">
+          <h2 id="relief-title" data-reveal>Рельеф, который<br>меняется</h2>
+          <ul class="relief-factors" aria-label="Процессы, меняющие рельеф">
+            <li data-reveal><span>Лёд</span><strong aria-hidden="true">01</strong></li>
+            <li data-reveal><span>Вода</span><strong aria-hidden="true">02</strong></li>
+            <li data-reveal><span>Осыпь</span><strong aria-hidden="true">03</strong></li>
+            <li data-reveal><span>Движение</span><strong aria-hidden="true">04</strong></li>
+          </ul>
+          <div class="chapter-caption" data-reveal><span>Доломитовые Альпы</span><span>Италия</span></div>
+        </div>
+      </section>
+
+      <section class="chapter erosion-chapter" aria-labelledby="erosion-title" data-node-id="140:587">
+        <img class="chapter-image" src="./assets/story/radiance.png" alt="" loading="lazy" decoding="async">
+        <div class="chapter-content">
+          <div>
+            <p class="story-label" data-reveal>07 / Природа маршрута</p>
+            <h2 id="erosion-title" data-reveal>Почему меняются<br>тропы и склоны</h2>
+          </div>
+          <div class="erosion-copy">
+            <p data-reveal>Рельеф меняется — и вместе с ним меняется путь.</p>
+            <p data-reveal>Вода проникает в трещины и замерзает. Трещины расширяются, а отколовшиеся обломки смещаются вниз по склону.</p>
+            <p data-reveal>Вода → лёд → трещина → осыпь</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="routes" class="gallery-chapter" aria-labelledby="routes-title" data-node-id="140:598">
+        <h2 id="routes-title">
+          <span data-reveal>От наблюдения — к путешествию.</span>
+          <span data-reveal>Выбери маршрут в Альта-Бадии</span>
+          <span data-reveal>и взгляни на Доломиты вместе с местным гидом.</span>
+        </h2>
+        <div class="route-gallery">
+          <figure class="gallery-panel" data-expanded data-reveal>
+            <img src="./assets/story/setsas.png" alt="" loading="lazy" decoding="async">
+            <span class="gallery-tag">Маршрут</span>
+            <figcaption><h3><button type="button" aria-expanded="true" aria-controls="gallery-setsas">Setsas и Pralongiá</button></h3><div id="gallery-setsas"><p>Плато, панорамы и следы перемен в ландшафте.</p><a href="https://www.altabadia.org/en/dolomites/hiking-alta-badia/detail/oa/from-passo-valparola-to-pralongia-and-down-to-san-cassiano">Открыть маршрут</a></div></figcaption>
+          </figure>
+          <figure class="gallery-panel" data-reveal>
+            <img src="./assets/story/piz-boe.png" alt="" loading="lazy" decoding="async">
+            <figcaption><h3><button type="button" aria-expanded="false" aria-controls="gallery-geology">С геологом</button></h3><div id="gallery-geology" hidden><p>Породы и следы ледников на горных тропах.</p><a href="#guides" data-guide-format>Выбрать поход с гидом</a></div></figcaption>
+          </figure>
+          <figure class="gallery-panel" data-reveal>
+            <img src="./assets/story/puez-odle.png" alt="" loading="lazy" decoding="async">
+            <figcaption><h3><button type="button" aria-expanded="false" aria-controls="gallery-puez">Puez-Odle</button></h3><div id="gallery-puez" hidden><p>Скальные массивы и высокогорные тропы.</p><a href="https://www.altabadia.org/en/bike/cycling-tours-dolomites/detail/oa/from-colfosco-to-the-sassongher-and-gherdenacia-ending-in-la-villa-1">Открыть маршрут</a></div></figcaption>
+          </figure>
+          <figure class="gallery-panel" data-reveal>
+            <img src="./assets/story/braies.png" alt="" loading="lazy" decoding="async">
+            <figcaption><h3><button type="button" aria-expanded="false" aria-controls="gallery-fanes">Fanes-Senes-Braies</button></h3><div id="gallery-fanes" hidden><p>Горные озёра и плато восточных Доломитов.</p><a href="#explorer">Карта остановок</a></div></figcaption>
+          </figure>
+          <figure class="gallery-panel" data-reveal>
+            <img src="./assets/story/last-of-the-mohicans.png" alt="" loading="lazy" decoding="async">
+            <figcaption><h3><button type="button" aria-expanded="false" aria-controls="gallery-guides">Местные гиды</button></h3><div id="gallery-guides" hidden><p>Горные и пешеходные гиды Альта-Бадии.</p><a href="https://www.altabadia.org/en/dolomites/mountain-guides-alta-badia-dolomites">Найти гида</a></div></figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="pause-chapter" aria-labelledby="pause-title">
+        <h2 id="pause-title"><span data-reveal>Замечать перемены.</span><span data-reveal>Понимать горы.</span><span data-reveal>Идти бережно.</span></h2>
+        <div data-reveal>
+          <p>Лёд, вода и породы меняют ландшафт.<br>На тропе эти процессы становятся видимыми.</p>
+          <small>Выбери, что исследовать дальше.</small>
+        </div>
+      </section>
+
+      <section id="trail-rules" class="chapter trail-chapter" aria-labelledby="trail-title" data-node-id="140:630">
+        <img class="chapter-image trail-base" src="./assets/story/figma-trail-base.png" alt="" loading="lazy" decoding="async">
+        <img class="chapter-image" src="./assets/story/trail-map.png" alt="" loading="lazy" decoding="async">
+        <img class="trail-outline" src="./assets/story/figma-trail-outline.svg" alt="" width="1440" height="1000" decoding="async">
+        <div class="chapter-content">
+          <h2 id="trail-title" data-reveal>Держись<br>размеченной тропы</h2>
+          <p data-reveal>Так ты сохраняешь растения, уменьшаешь эрозию и не тревожишь животных.</p>
+        </div>
+      </section>
+
+      <section id="guides" class="chapter guides-chapter" aria-labelledby="guides-title" data-node-id="140:643">
+        <img class="chapter-image" src="./assets/story/route-background.png" alt="" loading="lazy" decoding="async">
+        <img class="guides-edge" src="./assets/story/figma-form-edge.svg" alt="" width="1440" height="2167" decoding="async">
+        <div class="chapter-content">
+          <h2 id="guides-title" data-reveal>Горы меняются.<br>Выбирай свой маршрут.</h2>
+          <form class="route-picker" id="route-picker" aria-label="Подбор маршрута" data-reveal>
+            <div class="route-fields">
+              <label>Сезон<select name="season"><option value="">Любой</option><option value="summer">Лето</option><option value="winter">Зима</option></select></label>
+              <label>Длительность<select name="duration"><option value="">На один день</option><option value="short">До 2 часов</option><option value="half">От 2 до 4 часов</option><option value="long">Больше 4 часов</option></select></label>
+              <label class="wide-field">Сложность<select name="difficulty"><option value="">Подобрать по возможностям</option><option value="easy">Лёгкая</option><option value="medium">Средняя</option><option value="hard">Высокая</option></select></label>
+              <label class="wide-field">Набор высоты<select name="ascent"><option value="">Выбрать диапазон</option><option value="low">До 250 м</option><option value="mid">250–600 м</option><option value="high">Больше 600 м</option></select></label>
+              <label class="wide-field">Формат<select name="format"><option value="">Самостоятельно / с гидом</option><option value="self">Самостоятельно</option><option value="guide">С гидом</option></select></label>
+              <label class="wide-field">Точка старта<select name="start"><option value="">Корвара / Кольфоско</option><option value="corvara">Корвара</option><option value="colfosco">Кольфоско</option><option value="valparola">Перевал Вальпарола</option></select></label>
+              <div class="route-form-links">
+                <a href="https://www.altabadia.org/en/dolomites/mountain-guides-alta-badia-dolomites">Найти гида <span aria-hidden="true">↗</span></a>
+                <a href="#trail-rules">Правила похода <span aria-hidden="true">↗</span></a>
+              </div>
+            </div>
+            <div class="route-result">
+              <p class="route-result-title">Твой следующий<br>маршрут</p>
+              <div id="route-answer" aria-live="polite"></div>
+              <button type="submit">Найти маршрут</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <footer class="journey-footer" data-node-id="140:686">
+        <div class="footer-frame">
+          <img class="footer-photo" src="./assets/story/footer-background.png" alt="" loading="lazy" decoding="async">
+          <div class="footer-columns">
+            <nav aria-label="Меню">
+              <h2>Меню</h2>
+              <a href="#history">История</a>
+              <a href="#explorer">Карта остановок</a>
+              <a href="#routes">Маршруты</a>
+              <a href="#guides">Гиды</a>
+              <a href="#trail-rules">Правила похода</a>
+            </nav>
+            <nav id="sources" aria-label="Источники">
+              <h2>Источники</h2>
+              <a href="https://www.altabadia.org/">Alta Badia</a>
+              <a href="https://www.cnr.it/it/comunicato-stampa/13404/i-ghiacciai-delle-dolomiti-stanno-scomparendo">Наблюдения</a>
+              <a href="https://www.loscarpone.cai.it/dettaglio/il-ghiacciaio-della-marmolada-prosegue-il-suo-ritiro-persi-7-metri-in-un-anno/">Снимки по годам</a>
+            </nav>
+            <nav aria-label="Место">
+              <h2>Место</h2>
+              <a href="https://www.altabadia.org/en/villages/corvara-alta-badia">Корвара-ин-Бадия</a>
+              <a href="#explorer">Итальянские Доломиты</a>
+              <a href="#guides">Однодневный маршрут</a>
+            </nav>
+          </div>
+          <p class="footer-note">Доступность маршрутов уточняй у местных служб</p>
+          <div class="footer-meta">
+            <p>Маршрут в движении</p>
+            <p>Научно-популярный проект</p>
+            <p><a href="#sources">Источники</a><a href="#trail-rules">Правила похода</a></p>
+          </div>
+          <p class="footer-wordmark" aria-hidden="true">МАРШРУТ</p>
+        </div>
+      </footer>
+    </div>
+  </main>
+
+  <dialog id="about-dialog" aria-labelledby="about-title">
+    <button class="dialog-close" id="about-close" aria-label="Закрыть">×</button>
+    <span class="eyebrow">ITALIA · ALPI ORIENTALI</span><h2 id="about-title">Между небом<br>и Доломитами</h2>
+    <p>Поверните горы, приблизьтесь к вершинам и загляните в долины. Эта карта охватывает центральные Доломиты — от Валь-Гардены до Тре-Чиме.</p>
+    <dl><div><dt>Рельеф</dt><dd>Реальные данные высот. При масштабе ×1 пропорции высоты сохранены.</dd></div><div><dt>Атмосфера</dt><dd>Художественная обработка географической основы. Мелкие детали текстуры стилизованы.</dd></div><div><dt>Спутник</dt><dd>Исходная мозаика Sentinel-2 / EOX за 2017 год.</dd></div></dl>
+    <p class="about-controls">Двигайте курсор — снег плавно тает, открывая карту golden hour. След постепенно снова покрывается снегом. Мышью можно вращать и приближать карту. На сенсорном экране один палец растапливает снег, два — перемещают и приближают карту. Для вращения одним пальцем отключите таяние в настройках.</p>
+    <a class="source-link" href="./assets/SOURCES.txt" target="_blank" rel="noopener">Источники данных и лицензии ↗</a>
+  </dialog>
+  <script type="module" src="./journey.js?v=visible-loading"></script>
+  <script type="module" src="./route-picker.js?v=1"></script>
+</body>
+</html>
