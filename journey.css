@@ -1,3 +1,8 @@
+:root {
+  --mountain-blur-radius: clamp(44px, 7vmin, 84px);
+  --mountain-bleed: calc(2 * var(--mountain-blur-radius));
+}
+
 html:not(.map-only), html:not(.map-only) body {
   height: auto;
   overflow: visible;
@@ -69,13 +74,16 @@ html:not(.map-only).map-gated {
 }
 
 .portal-art img {
+  /* Match the padded loader framing as the photo fills the screen. */
+  --photo-bleed: calc(var(--mountain-bleed) * var(--photo-bleed-progress, 0));
   position: absolute;
-  top: 0;
-  left: 0;
-  width: var(--photo-width, 100%);
-  height: var(--photo-height, 100%);
+  top: calc(-1 * var(--photo-bleed));
+  left: calc(-1 * var(--photo-bleed));
+  width: calc(var(--photo-width, 100%) + 2 * var(--photo-bleed));
+  height: calc(var(--photo-height, 100%) + 2 * var(--photo-bleed));
   object-fit: cover;
   opacity: var(--photo-opacity, .8);
+  filter: blur(calc(var(--mountain-blur-radius) * var(--photo-blur-progress, 0)));
   transform: translate3d(var(--photo-x, 0px), var(--photo-y, 0px), 0);
 }
 
@@ -209,7 +217,6 @@ html:not(.map-only).map-gated {
 }
 
 #loading {
-  --loading-blur: clamp(44px, 7vmin, 84px);
   background: #221a15;
   backdrop-filter: none;
   color: #fff;
@@ -222,10 +229,10 @@ html:not(.map-only).map-gated {
 #loading::before {
   content: '';
   position: absolute;
-  inset: calc(-2 * var(--loading-blur));
+  inset: calc(-1 * var(--mountain-bleed));
   z-index: -1;
   background: linear-gradient(rgb(34 26 21 / 29%) 0 0), url('./assets/story/jagged-peaks.png') center / cover;
-  filter: blur(var(--loading-blur));
+  filter: blur(var(--mountain-blur-radius));
 }
 
 html:not(.map-only) #explorer[data-loading] {
@@ -236,12 +243,8 @@ html:not(.map-only) #explorer[data-loading] {
   font: 400 clamp(1.35rem, 2.42vw, 2.2rem)/1.2 'Prosto One', Arial, sans-serif;
 }
 
+/* Letter entrance based on Tobias Ahlin’s Moving Letters #1 (Thursday). */
 @media (prefers-reduced-motion: no-preference) {
-  #loading.is-loading::before {
-    animation: loading-background-blur 500ms ease-out;
-  }
-
-  /* Letter entrance based on Tobias Ahlin’s Moving Letters #1 (Thursday). */
   #loading.is-loading #loading-message {
     display: inline-block;
   }
@@ -251,10 +254,6 @@ html:not(.map-only) #explorer[data-loading] {
     animation: loading-letter-in 600ms cubic-bezier(.19, 1, .22, 1) both;
     animation-delay: calc(var(--loading-letter-index) * 70ms);
   }
-}
-
-@keyframes loading-background-blur {
-  from { filter: blur(0); }
 }
 
 @keyframes loading-letter-in {

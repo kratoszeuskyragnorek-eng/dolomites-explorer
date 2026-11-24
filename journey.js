@@ -1,7 +1,6 @@
 const portal = document.querySelector('.portal');
 const stage = portal.querySelector('.portal-stage');
 const aperture = stage.querySelector('.portal-aperture');
-const photo = stage.querySelector('.portal-art img');
 const copy = stage.querySelector('.portal-copy');
 const header = stage.querySelector('.journey-header');
 const explorer = document.getElementById('explorer');
@@ -126,9 +125,6 @@ function frameOpening(progress) {
   const focusY = interpolate(openingY + openingHeight * .43, scene.height / 2, approach);
 
   const view = ease(.08, .9, progress);
-  const ratio = photo.naturalWidth / photo.naturalHeight || 1.72;
-  const coverWidth = Math.max(scene.width, scene.height * ratio);
-  const coverHeight = coverWidth / ratio;
   const copyFade = ease(.08, .58, progress);
   const navFade = ease(.40, .77, progress);
   const style = stage.style;
@@ -138,10 +134,12 @@ function frameOpening(progress) {
   style.setProperty('--opening-y', `${focusY - openingHeight * scale * .43}px`);
   style.setProperty('--open', ease(.74, .9, progress));
   style.setProperty('--art-top', `${top * (1 - ease(0, .47, progress))}px`);
-  style.setProperty('--photo-x', `${interpolate(left - figure.width * .6109, (scene.width - coverWidth) / 2, view)}px`);
-  style.setProperty('--photo-y', `${interpolate(top - figure.height * .6274, (scene.height - coverHeight) / 2, view)}px`);
-  style.setProperty('--photo-width', `${interpolate(figure.width * 2.2218, coverWidth, view)}px`);
-  style.setProperty('--photo-height', `${interpolate(figure.height * 2.2548, coverHeight, view)}px`);
+  style.setProperty('--photo-x', `${interpolate(left - figure.width * .6109, 0, view)}px`);
+  style.setProperty('--photo-y', `${interpolate(top - figure.height * .6274, 0, view)}px`);
+  style.setProperty('--photo-width', `${interpolate(figure.width * 2.2218, scene.width, view)}px`);
+  style.setProperty('--photo-height', `${interpolate(figure.height * 2.2548, scene.height, view)}px`);
+  style.setProperty('--photo-bleed-progress', view);
+  style.setProperty('--photo-blur-progress', 1 - (1 - progress) ** 2);
   style.setProperty('--photo-opacity', interpolate(.8, .71, view));
   style.setProperty('--copy-opacity', 1 - copyFade);
   style.setProperty('--copy-rise', `${-scene.height * .27 * ease(.02, .65, progress)}px`);
@@ -344,7 +342,6 @@ if (!mapOnly) {
   window.addEventListener('scroll', requestPortalFrame, {passive: true});
   window.addEventListener('resize', reframePortal);
   reducedMotion.addEventListener('change', reframePortal);
-  photo.addEventListener('load', reframePortal);
   window.addEventListener('wheel', handleWheel, {capture: true, passive: false});
   window.addEventListener('touchstart', startSwipe, {capture: true, passive: true});
   window.addEventListener('touchend', endSwipe, {capture: true, passive: true});
