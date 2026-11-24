@@ -280,32 +280,41 @@
   color: #1f1f1f;
   font-size: clamp(1.9rem, 3.89vw, 3.5rem);
   line-height: 1.285;
+  letter-spacing: -.01em;
 }
 
 .route-picker {
   display: grid;
-  grid-template-columns: 660fr 196fr;
-  width: min(100%, 856px);
-  min-height: 672px;
+  grid-template-columns: minmax(0, 660fr) minmax(104px, 196fr);
+  width: min(100%, clamp(440px, calc(100vw * 856 / 1440), 856px));
+  min-height: clamp(392px, 46.667vw, 672px);
+  container-type: inline-size;
   color: #1f1f1f;
   text-align: left;
 }
 
 .route-fields {
+  --field-line-height: clamp(15px, 2.804cqw, 24px);
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: start;
-  column-gap: 24px;
-  row-gap: 24px;
-  padding: 40px 8.485% 40px 4.85%;
+  gap: clamp(12px, 2.804cqw, 24px);
+  padding: clamp(20px, 4.673cqw, 40px) 8.485% clamp(20px, 4.673cqw, 40px) 4.85%;
   background: #fff;
 }
 
 .route-fields label {
   display: grid;
-  gap: 8px;
-  font: 500 .875rem/1.72 Manrope, Arial, sans-serif;
+  gap: clamp(4px, .935cqw, 8px);
+  min-width: 0;
+  border-bottom: 1px solid #a6a6a6;
+  color: #333;
+  font: 500 clamp(.6875rem, 1.636cqw, .875rem)/var(--field-line-height) Manrope, Arial, sans-serif;
   letter-spacing: .03em;
+}
+
+.route-fields label:nth-child(-n+2) {
+  margin-bottom: clamp(3px, .818cqw, 7px);
 }
 
 .wide-field, .route-form-links {
@@ -313,22 +322,30 @@
 }
 
 .route-fields select {
-  width: 100%;
-  min-height: 33px;
-  padding: 0 15px 9px 0;
+  appearance: none;
+  field-sizing: content;
+  justify-self: start;
+  max-width: 100%;
+  min-width: 0;
+  min-height: clamp(22px, 3.738cqw, 32px);
+  margin: 0;
+  padding: 0 10px clamp(4px, .935cqw, 8px) 0;
   border: 0;
-  border-bottom: 1px solid #a6a6a6;
   border-radius: 0;
-  background: #fff;
+  background: linear-gradient(45deg, transparent 50%, currentColor 50%) right 3px top .69em / 3px 3px no-repeat,
+              linear-gradient(135deg, currentColor 50%, transparent 50%) right top .69em / 3px 3px no-repeat;
   color: #1f1f1f;
-  font: 400 1rem/1.5 Manrope, Arial, sans-serif;
+  color-scheme: light;
+  font: 400 clamp(.75rem, 1.869cqw, 1rem)/var(--field-line-height) Manrope, Arial, sans-serif;
 }
 
 .route-form-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  font-size: .875rem;
+  gap: 6px 12px;
+  color: #333;
+  font: 500 clamp(.6875rem, 1.636cqw, .875rem)/var(--field-line-height) Manrope, Arial, sans-serif;
+  letter-spacing: .03em;
 }
 
 .route-form-links a {
@@ -338,8 +355,8 @@
 .route-result {
   display: grid;
   grid-template-rows: auto 1fr auto;
-  gap: 24px;
-  padding: 40px 16px 32px;
+  gap: clamp(12px, 2.804cqw, 24px);
+  padding: clamp(20px, 4.673cqw, 40px) clamp(8px, 1.869cqw, 16px) clamp(16px, 3.738cqw, 32px);
   background: #333333cf;
   color: #fff;
   text-align: center;
@@ -349,28 +366,44 @@
   margin: 0;
 }
 
+.route-result-title {
+  font: 400 clamp(.8125rem, 1.869cqw, 1rem)/1.5 Manrope, Arial, sans-serif;
+}
+
 #route-answer {
   display: grid;
   align-content: center;
   gap: 9px;
+  min-width: 0;
   font-size: .875rem;
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 #route-answer strong { font-size: 1rem; }
 
 .route-result button {
-  min-height: 64px;
-  padding: 10px 8px;
+  min-height: clamp(44px, 7.477cqw, 64px);
+  padding: 8px 4px;
   border: 1px solid #808080;
-  border-radius: 22px;
+  border-radius: clamp(14px, 2.453cqw, 21px);
   background: #fff;
   color: #1f1f1f;
-  font: 400 .875rem/1.3 'Russo One', Arial, sans-serif;
+  font: 400 clamp(.6875rem, 1.636cqw, .875rem)/1.5 'Russo One', Arial, sans-serif;
+  letter-spacing: .03em;
 }
 
 .route-result button:hover {
   background: #f3efe6;
+}
+
+@media (max-width: 380px) {
+  .guides-chapter .chapter-content { padding-inline: 3vw; }
+  .route-fields {
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: 8px;
+  }
+  .route-fields label:nth-child(-n+2) { margin-bottom: 0; }
 }
 
 .journey-footer {
@@ -499,9 +532,6 @@
     overflow: auto;
   }
   .route-gallery .gallery-panel { min-height: 400px; }
-  .route-picker { grid-template-columns: minmax(0, 1fr); min-height: 0; }
-  .route-fields { column-gap: 16px; padding: 26px 20px 32px; }
-  .route-result { grid-template-rows: auto auto auto; gap: 14px; padding: 24px; }
   .footer-frame { aspect-ratio: auto; min-height: 360px; padding: 20px 12px 13vw; }
   .footer-photo { top: 0; height: 100%; }
   .footer-columns { position: relative; inset: auto; gap: 12px; }
