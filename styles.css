@@ -1,11 +1,10 @@
 :root{color-scheme:dark;--paper:#f3f1df;--ink:#526845;--line:rgba(246,246,221,.25)}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}body{background:#586246;font-family:Arial,Helvetica,sans-serif;color:var(--paper)}button,a,input{-webkit-tap-highlight-color:transparent}button{font:inherit;cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #e8db8c;outline-offset:5px}button{border:0}a{color:inherit}button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}button:disabled{opacity:.45;cursor:wait}[hidden]{display:none!important}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}body{background:#586246;font-family:var(--font-ui);color:var(--paper)}button,a,input{-webkit-tap-highlight-color:transparent}button{font:inherit;cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid #e8db8c;outline-offset:5px}button{border:0}a{color:inherit}button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}button:disabled{opacity:.45;cursor:wait}[hidden]{display:none!important}
 #explorer,#viewport,#poster,#markers{position:absolute;inset:0}#explorer{background:#fff}#viewport{touch-action:none}#viewport canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none}#viewport canvas:active{cursor:grabbing}#poster{background:url('./assets/styled.webp') center/cover;transition:opacity 1.2s}body.ready #poster{opacity:0;pointer-events:none}#markers{pointer-events:none;z-index:3}
-.header{position:absolute;inset:0 0 auto;z-index:5;pointer-events:none}.brand{position:absolute;left:50%;top:22px;transform:translateX(-50%);text-align:center;white-space:nowrap;pointer-events:none}.brand h1{font:normal 46px/1 Georgia,'Times New Roman',serif;letter-spacing:-1.5px;margin:6px 0 7px;text-shadow:0 2px 14px #263d2b55}.brand-eyebrow{font-size:7px;letter-spacing:2.2px;opacity:.8}.brand-subtitle{font-size:8px;letter-spacing:2.4px}
+.header{position:absolute;inset:0 0 auto;z-index:5;pointer-events:none}.brand{position:absolute;left:50%;top:22px;transform:translateX(-50%);text-align:center;white-space:nowrap;pointer-events:none}.brand h1{font:normal 46px/1 var(--font-heading);letter-spacing:-1.5px;margin:6px 0 7px;text-shadow:0 2px 14px #263d2b55}.brand-eyebrow{font-size:7px;letter-spacing:2.2px;opacity:.8}.brand-subtitle{font-size:8px;letter-spacing:2.4px}
 #explorer {
   --place-panel: rgb(67 62 51 / 84%);
   --place-text: #f7f4e9;
-  --place-serif: 'Palatino Linotype', Palatino, Georgia, serif;
 }
 .marker{position:absolute;left:0;top:0;pointer-events:auto;display:flex;align-items:center;gap:9px;transform:translate(-50%,-50%);background:none;border:0;color:#fffde9;padding:14px;white-space:nowrap;will-change:left,top}.marker-dot{height:10px;width:10px;border:3px solid #f7f5e4;background:#6e8450;border-radius:50%;box-shadow:0 0 0 6px #f7f5e414,0 1px 8px #1117;transition:transform .2s,box-shadow .2s}
 .marker-name {
@@ -17,7 +16,7 @@
   background: var(--place-panel);
   backdrop-filter: blur(8px);
   color: var(--place-text);
-  font: 400 clamp(16px, 1.4vw, 23px)/1.12 var(--place-serif);
+  font: 400 clamp(16px, 1.4vw, 23px)/1.12 var(--font-heading);
   opacity: 0;
   transform: translate(-4px, -50%);
   transition: opacity .18s, transform .18s;
@@ -42,7 +41,6 @@
   background: var(--place-panel);
   backdrop-filter: blur(17px) saturate(.8);
   color: var(--place-text);
-  font-family: Manrope, Arial, sans-serif;
   box-shadow: 0 8px 32px rgb(24 21 15 / 14%);
 }
 .place-card .eyebrow {
@@ -55,7 +53,7 @@
 }
 .place-card h2 {
   margin: .28em 0 .32em;
-  font: 400 clamp(36px, 3.76vw, 64px)/1.05 var(--place-serif);
+  font: 400 clamp(36px, 3.76vw, 64px)/1.05 var(--font-heading);
   letter-spacing: -.025em;
   overflow-wrap: anywhere;
 }
@@ -83,11 +81,11 @@
   border-radius: 2px;
   background: transparent;
   color: rgb(247 244 233 / 78%);
-  font: 400 22px/1 Arial, sans-serif;
+  font: 400 22px/1 var(--font-ui);
 }
 .card-close:hover { background: rgb(255 255 255 / 12%); color: var(--place-text); }
 .card-close:focus-visible { outline-offset: -3px; }
-.loading{position:absolute;inset:0;background:#27382ae8;z-index:20;display:flex;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(12px);gap:18px;transition:opacity .8s}.loading.finished{opacity:0;pointer-events:none}.loading-mountain{font-size:43px;font-family:Georgia,serif;opacity:.7}#loading-message{font-size:9px;letter-spacing:3px}.loading-line{width:120px;height:1px;background:#e8f1c838;overflow:hidden}.loading-line:after{content:'';display:block;height:100%;width:40%;background:#f0edca;animation:loading 1.5s ease-in-out infinite}.loading p{font-size:11px;color:#c3cbb3}.loading button{padding:12px 18px;color:#43523b;background:#f3f1dd;font-size:12px}.loading a{font-size:12px}.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}@keyframes loading{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+.loading{position:absolute;inset:0;background:#27382ae8;z-index:20;display:flex;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(12px);gap:18px;transition:opacity .8s}.loading.finished{opacity:0;pointer-events:none}.loading-mountain{font-size:43px;font-family:var(--font-heading);opacity:.7}#loading-message{font-size:9px;letter-spacing:3px}.loading-line{width:120px;height:1px;background:#e8f1c838;overflow:hidden}.loading-line:after{content:'';display:block;height:100%;width:40%;background:#f0edca;animation:loading 1.5s ease-in-out infinite}.loading p{font-size:11px;color:#c3cbb3}.loading button{padding:12px 18px;color:#43523b;background:#f3f1dd;font-size:12px}.loading a{font-size:12px}.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}@keyframes loading{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
 @media(max-width:900px){.map-tools{right:20px}.bottom-right{right:21px}}
 @media(max-width:600px){.brand{top:20px}.brand h1{font-size:37px;margin:8px 0}.brand-eyebrow{font-size:6px;letter-spacing:1.4px}.brand-subtitle{font-size:6px;letter-spacing:1.9px}.map-tools{right:14px;top:45%;padding:2px}.map-tools button{width:33px;height:37px}.map-tools button svg{width:19px}.bottom-right{right:16px;bottom:43px}.settings-button{width:45px;height:45px}.settings{bottom:58px;max-width:calc(100vw - 32px)}}
 @media (max-width: 600px) {

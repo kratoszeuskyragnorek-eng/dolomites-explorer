@@ -19,7 +19,6 @@ html:not(.map-only).map-gated {
 
 .journey-only {
   color-scheme: light;
-  font-family: Manrope, Arial, sans-serif;
 }
 
 .map-only .journey-only {
@@ -111,7 +110,8 @@ html:not(.map-only).map-gated {
 
 .journey-header nav a {
   font-size: .875rem;
-  font-weight: 600;
+  font-weight: 500;
+  letter-spacing: .03em;
   text-transform: uppercase;
 }
 
@@ -121,7 +121,7 @@ html:not(.map-only).map-gated {
 }
 
 .journey-wordmark, .footer-wordmark {
-  font: 400 1.75rem/1 'Russo One', Arial, sans-serif;
+  font: 400 1.75rem/1 var(--font-heading);
 }
 
 .journey-pill {
@@ -136,7 +136,7 @@ html:not(.map-only).map-gated {
   border-radius: 22px;
   background: #fff;
   color: #1f1f1f;
-  font: 400 .875rem/1.3 'Prosto One', Arial, sans-serif;
+  font: 500 .875rem/1.3 var(--font-ui);
   text-transform: uppercase;
   text-decoration: none;
   letter-spacing: .03em;
@@ -153,7 +153,6 @@ html:not(.map-only).map-gated {
   min-width: 196px;
   border-radius: 16px;
   justify-self: end;
-  font-family: 'Russo One', Arial, sans-serif;
 }
 
 .portal-copy {
@@ -170,9 +169,9 @@ html:not(.map-only).map-gated {
 
 .portal-copy h1, .journey-story h2 {
   margin: 0;
-  font-family: 'Prosto One', Arial, sans-serif;
+  font-family: var(--font-heading);
   font-weight: 400;
-  letter-spacing: -.015em;
+  letter-spacing: -.01em;
   text-wrap: balance;
 }
 
@@ -237,7 +236,7 @@ html:not(.map-only) #explorer[data-loading] {
 }
 
 #loading-message {
-  font: 400 clamp(1.35rem, 2.42vw, 2.2rem)/1.2 'Prosto One', Arial, sans-serif;
+  font: 500 clamp(1.35rem, 2.42vw, 2.2rem)/1.2 var(--font-ui);
 }
 
 /* Letter entrance based on Tobias Ahlin’s Moving Letters #1 (Thursday). */
@@ -261,7 +260,7 @@ html:not(.map-only) #explorer[data-loading] {
 #loading p {
   margin: 0 18px;
   color: #fff;
-  font: 400 .875rem/1.4 Manrope, Arial, sans-serif;
+  font: 400 .875rem/1.4 var(--font-ui);
 }
 
 html:not(.map-only) #explorer {
@@ -282,7 +281,7 @@ html:not(.map-only) #explorer:fullscreen {
 
 .brand .map-title {
   margin: 6px 0 7px;
-  font: 400 46px/1 Georgia, 'Times New Roman', serif;
+  font: 400 46px/1 var(--font-heading);
   letter-spacing: -1.5px;
   text-shadow: 0 2px 14px #263d2b55;
 }
@@ -365,7 +364,7 @@ html:not(.map-only) #explorer:fullscreen {
 }
 
 .relief-factors strong {
-  font: 400 clamp(2.8rem, 7vw, 6rem)/1 'Prosto One', Arial, sans-serif;
+  font: 400 clamp(2.8rem, 7vw, 6rem)/1 var(--font-heading);
 }
 
 .chapter-caption {
@@ -376,7 +375,7 @@ html:not(.map-only) #explorer:fullscreen {
 
 .chapter-caption, .story-label {
   font-size: .875rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: .08em;
   text-transform: uppercase;
 }
@@ -469,7 +468,7 @@ html:not(.map-only) #explorer:fullscreen {
 
 .route-gallery h3 {
   margin: 8px 0;
-  font: 400 clamp(.875rem, 1.5vw, 1.375rem)/1.2 'Prosto One', Arial, sans-serif;
+  font: 500 clamp(.875rem, 1.5vw, 1.375rem)/1.2 var(--font-ui);
 }
 
 .route-gallery figure:first-child h3 {
