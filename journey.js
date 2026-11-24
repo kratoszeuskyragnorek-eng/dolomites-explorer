@@ -560,7 +560,7 @@ if (!mapOnly) {
     }, {threshold: .14});
     const staggered = '.relief-steps, .erosion-copy, .route-gallery, .gallery-chapter h2';
     story.classList.add('is-animated');
-    for (const element of story.querySelectorAll('[data-reveal]')) {
+    for (const element of story.querySelectorAll('[data-reveal], .trail-chapter')) {
       if (element.parentElement.matches(staggered)) {
         const index = Array.from(element.parentElement.children).indexOf(element);
         element.style.setProperty('--reveal-delay', `${index * 80}ms`);

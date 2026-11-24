@@ -351,9 +351,6 @@
   line-height: 1.43;
 }
 
-.trail-chapter .trail-base { z-index: -3; }
-.trail-outline { z-index: -1; }
-
 .guides-chapter {
   min-height: auto;
   background: #fff;

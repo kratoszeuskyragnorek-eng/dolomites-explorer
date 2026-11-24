@@ -9,8 +9,8 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%2329382b'/%3E%3Cpath d='M6 29 17 10l6 12 4-7 8 14' fill='none' stroke='%23f5f2df' stroke-width='2'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="./assets/story/fonts/fonts.css?v=forum-jost">
   <link rel="stylesheet" href="./styles.css?v=forum-jost">
-  <link rel="stylesheet" href="./journey.css?v=loading-forum">
-  <link rel="stylesheet" href="./make-it.css?v=relief-process">
+  <link rel="stylesheet" href="./journey.css?v=trail-path-reveal">
+  <link rel="stylesheet" href="./make-it.css?v=trail-path-reveal">
   <script>if(new URLSearchParams(location.search).get('view')==='map')document.documentElement.classList.add('map-only');</script>
   <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js"}}</script>
 </head>
@@ -206,9 +206,16 @@
       </section>
 
       <section id="trail-rules" class="chapter trail-chapter" aria-labelledby="trail-title" data-node-id="140:630">
-        <img class="chapter-image trail-base" src="./assets/story/figma-trail-base.png" alt="" loading="lazy" decoding="async">
-        <img class="chapter-image" src="./assets/story/trail-map.png" alt="" loading="lazy" decoding="async">
-        <img class="trail-outline" src="./assets/story/figma-trail-outline.svg" alt="" width="1440" height="1000" decoding="async">
+        <img class="chapter-image" src="./assets/story/trail-terrain.webp" alt="" width="1728" height="650" loading="lazy" decoding="async">
+        <svg class="trail-outline" viewBox="0 0 1440 640" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="trail-stroke" x1="773" y1="227" x2="-664.5" y2="207" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#ffbd2f"/>
+              <stop offset="1" stop-color="#99711c" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M-70 140C130 90 170 300 320 205C470 110 540 60 670 210C800 360 800 310 1020 180C1240 50 1200 130 1510 240" pathLength="1" fill="none" stroke="url(#trail-stroke)" stroke-width="22" stroke-linecap="round"/>
+        </svg>
         <div class="chapter-content">
           <h2 id="trail-title" data-reveal>Держись<br>размеченной тропы</h2>
           <p data-reveal>Так ты сохраняешь растения, уменьшаешь эрозию и не тревожишь животных.</p>
@@ -279,7 +286,7 @@
     </div>
   </main>
 
-  <script type="module" src="./journey.js?v=pause-torph-scroll"></script>
+  <script type="module" src="./journey.js?v=trail-path-reveal"></script>
   <script type="module" src="./route-picker.js?v=route-gallery-accordion"></script>
 </body>
 </html>

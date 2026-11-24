@@ -501,21 +501,62 @@ html:not(.map-only) #explorer:fullscreen {
 }
 
 .trail-chapter {
-  min-height: clamp(430px, 54.45vw, 820px);
+  min-height: clamp(320px, 32vw, 510px);
   background: #242321;
-  align-items: center;
+  align-items: end;
 }
 
 .trail-chapter .chapter-content {
   width: min(100%, 560px);
+  padding-block: 0 clamp(26px, 4.25vw, 68px);
 }
 
 .trail-chapter .chapter-image {
-  object-position: 50% 45%;
+  object-position: center;
+  filter: grayscale(1) brightness(.55) contrast(1.15);
+}
+
+.trail-chapter::before,
+.trail-outline {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.trail-chapter::before {
+  content: "";
+  background: linear-gradient(90deg, rgb(13 12 11 / 69%), transparent 63%),
+    linear-gradient(0deg, rgb(13 12 11 / 22%), transparent 58%);
+}
+
+.trail-outline {
+  width: 100%;
+  height: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .journey-story.is-animated .trail-outline path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+
+  .journey-story.is-animated .trail-chapter.revealed .trail-outline path {
+    animation: draw-trail-path 1.55s cubic-bezier(.32, 0, .3, 1) both;
+  }
+}
+
+@keyframes draw-trail-path {
+  to { stroke-dashoffset: 0; }
 }
 
 .trail-chapter h2 {
   font-size: clamp(1.8rem, 3.1vw, 3rem);
+}
+
+.trail-chapter p {
+  max-width: 33ch;
+  margin: 12px 0 0;
 }
 
 .guides-chapter {
