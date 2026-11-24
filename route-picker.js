@@ -87,15 +87,34 @@ for (const link of document.querySelectorAll('[data-guide-format]')) {
   });
 }
 
-const panels = Array.from(document.querySelectorAll('.gallery-panel'));
-for (const panel of panels) {
-  panel.querySelector('h3 button').addEventListener('click', () => {
-    for (const item of panels) {
-      const expanded = item === panel;
-      const button = item.querySelector('h3 button');
-      item.toggleAttribute('data-expanded', expanded);
-      button.setAttribute('aria-expanded', String(expanded));
-      document.getElementById(button.getAttribute('aria-controls')).hidden = !expanded;
+const panels = Array.from(document.querySelectorAll('.route-gallery .gallery-panel'), panel => {
+  const button = panel.querySelector('h3 button');
+  const details = document.getElementById(button.getAttribute('aria-controls'));
+  return {panel, button, details};
+});
+let activePanel = panels.find(({panel}) => panel.hasAttribute('data-expanded'));
+
+function setPanelExpanded({panel, button, details}, expanded) {
+  panel.toggleAttribute('data-expanded', expanded);
+  button.setAttribute('aria-expanded', String(expanded));
+  details.inert = !expanded;
+}
+
+function expandPanel(item) {
+  if (item === activePanel) return;
+  if (activePanel) {
+    if (activePanel.details.contains(document.activeElement)) {
+      activePanel.button.focus({preventScroll: true});
     }
+    setPanelExpanded(activePanel, false);
+  }
+  setPanelExpanded(item, true);
+  activePanel = item;
+}
+
+for (const item of panels) {
+  item.panel.addEventListener('pointerenter', event => {
+    if (event.pointerType === 'mouse') expandPanel(item);
   });
+  item.button.addEventListener('click', () => expandPanel(item));
 }

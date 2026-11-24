@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="./assets/story/fonts/fonts.css?v=forum-jost">
   <link rel="stylesheet" href="./styles.css?v=forum-jost">
   <link rel="stylesheet" href="./journey.css?v=map-wheel-continue">
-  <link rel="stylesheet" href="./make-it.css?v=forum-jost">
+  <link rel="stylesheet" href="./make-it.css?v=route-gallery-accordion">
   <script>if(new URLSearchParams(location.search).get('view')==='map')document.documentElement.classList.add('map-only');</script>
   <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js"}}</script>
 </head>
@@ -145,23 +145,23 @@
           <figure class="gallery-panel" data-expanded data-reveal>
             <img src="./assets/story/setsas.png" alt="" loading="lazy" decoding="async">
             <span class="gallery-tag">Маршрут</span>
-            <figcaption><h3><button type="button" aria-expanded="true" aria-controls="gallery-setsas">Setsas и Pralongiá</button></h3><div id="gallery-setsas"><p>Плато, панорамы и следы перемен в ландшафте.</p><a href="https://www.altabadia.org/en/dolomites/hiking-alta-badia/detail/oa/from-passo-valparola-to-pralongia-and-down-to-san-cassiano">Открыть маршрут</a></div></figcaption>
+            <figcaption><h3><button type="button" aria-expanded="true" aria-controls="gallery-setsas">Setsas и Pralongiá</button></h3><div id="gallery-setsas" class="gallery-details"><div><p>Плато, панорамы и следы перемен в ландшафте.</p><a href="https://www.altabadia.org/en/dolomites/hiking-alta-badia/detail/oa/from-passo-valparola-to-pralongia-and-down-to-san-cassiano">Открыть маршрут</a></div></div></figcaption>
           </figure>
           <figure class="gallery-panel" data-reveal>
             <img src="./assets/story/piz-boe.png" alt="" loading="lazy" decoding="async">
-            <figcaption><h3><button type="button" aria-expanded="false" aria-controls="gallery-geology">С геологом</button></h3><div id="gallery-geology" hidden><p>Породы и следы ледников на горных тропах.</p><a href="#guides" data-guide-format>Выбрать поход с гидом</a></div></figcaption>
+            <figcaption><h3><button type="button" aria-expanded="false" aria-controls="gallery-geology">С геологом</button></h3><div id="gallery-geology" class="gallery-details" inert><div><p>Породы и следы ледников на горных тропах.</p><a href="#guides" data-guide-format>Выбрать поход с гидом</a></div></div></figcaption>
           </figure>
           <figure class="gallery-panel" data-reveal>
             <img src="./assets/story/puez-odle.png" alt="" loading="lazy" decoding="async">
-            <figcaption><h3><button type="button" aria-expanded="false" aria-controls="gallery-puez">Puez-Odle</button></h3><div id="gallery-puez" hidden><p>Скальные массивы и высокогорные тропы.</p><a href="https://www.altabadia.org/en/bike/cycling-tours-dolomites/detail/oa/from-colfosco-to-the-sassongher-and-gherdenacia-ending-in-la-villa-1">Открыть маршрут</a></div></figcaption>
+            <figcaption><h3><button type="button" aria-expanded="false" aria-controls="gallery-puez">Puez-Odle</button></h3><div id="gallery-puez" class="gallery-details" inert><div><p>Скальные массивы и высокогорные тропы.</p><a href="https://www.altabadia.org/en/bike/cycling-tours-dolomites/detail/oa/from-colfosco-to-the-sassongher-and-gherdenacia-ending-in-la-villa-1">Открыть маршрут</a></div></div></figcaption>
           </figure>
           <figure class="gallery-panel" data-reveal>
             <img src="./assets/story/braies.png" alt="" loading="lazy" decoding="async">
-            <figcaption><h3><button type="button" aria-expanded="false" aria-controls="gallery-fanes">Fanes-Senes-Braies</button></h3><div id="gallery-fanes" hidden><p>Горные озёра и плато восточных Доломитов.</p><a href="#explorer">Карта остановок</a></div></figcaption>
+            <figcaption><h3><button type="button" aria-expanded="false" aria-controls="gallery-fanes">Fanes-Senes-Braies</button></h3><div id="gallery-fanes" class="gallery-details" inert><div><p>Горные озёра и плато восточных Доломитов.</p><a href="#explorer">Карта остановок</a></div></div></figcaption>
           </figure>
           <figure class="gallery-panel" data-reveal>
             <img src="./assets/story/last-of-the-mohicans.png" alt="" loading="lazy" decoding="async">
-            <figcaption><h3><button type="button" aria-expanded="false" aria-controls="gallery-guides">Местные гиды</button></h3><div id="gallery-guides" hidden><p>Горные и пешеходные гиды Альта-Бадии.</p><a href="https://www.altabadia.org/en/dolomites/mountain-guides-alta-badia-dolomites">Найти гида</a></div></figcaption>
+            <figcaption><h3><button type="button" aria-expanded="false" aria-controls="gallery-guides">Местные гиды</button></h3><div id="gallery-guides" class="gallery-details" inert><div><p>Горные и пешеходные гиды Альта-Бадии.</p><a href="https://www.altabadia.org/en/dolomites/mountain-guides-alta-badia-dolomites">Найти гида</a></div></div></figcaption>
           </figure>
         </div>
       </section>
@@ -249,6 +249,6 @@
   </main>
 
   <script type="module" src="./journey.js?v=map-card-slide-dismiss"></script>
-  <script type="module" src="./route-picker.js?v=1"></script>
+  <script type="module" src="./route-picker.js?v=route-gallery-accordion"></script>
 </body>
 </html>

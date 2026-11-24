@@ -135,6 +135,8 @@
 .gallery-chapter h2 span:nth-child(3) { color: #f4ecdd85; }
 
 .route-gallery {
+  --gallery-duration: 440ms;
+  --gallery-easing: cubic-bezier(.22,.61,.36,1);
   display: flex;
   gap: clamp(12px, 1.667vw, 24px);
   margin-top: clamp(42px, 5.28vw, 76px);
@@ -144,7 +146,15 @@
   flex: 196 1 0;
   min-width: 0;
   min-height: clamp(340px, 38.889vw, 560px);
-  transition: flex-grow .38s ease, opacity .7s ease, translate .85s cubic-bezier(.2,.65,.25,1);
+}
+
+.route-gallery .gallery-panel,
+.journey-story.is-animated .route-gallery .gallery-panel[data-reveal] {
+  transition:
+    flex-grow var(--gallery-duration) var(--gallery-easing),
+    flex-basis var(--gallery-duration) var(--gallery-easing),
+    opacity .7s ease var(--reveal-delay, 0ms),
+    translate .85s cubic-bezier(.2,.65,.25,1) var(--reveal-delay, 0ms);
 }
 
 .route-gallery .gallery-panel[data-expanded] {
@@ -156,13 +166,33 @@
   padding: 0 clamp(12px, 1.67vw, 24px) clamp(40px, 5.77vw, 83px);
 }
 
-.route-gallery .gallery-panel h3 {
+.route-gallery .gallery-panel figcaption h3 {
   margin: 0;
   font: 500 1rem/1.5 var(--font-ui);
+  overflow-wrap: anywhere;
+  transition: font-size var(--gallery-duration) var(--gallery-easing);
 }
 
-.route-gallery .gallery-panel[data-expanded] h3 {
+.route-gallery .gallery-panel[data-expanded] figcaption h3 {
   font: 400 clamp(1.2rem, 1.94vw, 1.75rem)/1.4 var(--font-heading);
+}
+
+.gallery-details {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows var(--gallery-duration) var(--gallery-easing), opacity 180ms ease;
+}
+
+.gallery-details > div {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.gallery-panel[data-expanded] .gallery-details {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition: grid-template-rows var(--gallery-duration) var(--gallery-easing), opacity 240ms ease 110ms;
 }
 
 .gallery-panel h3 button {
@@ -205,9 +235,16 @@
   color: #1f1f1f;
   text-transform: uppercase;
   font: 500 .875rem/1.4 var(--font-ui);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 180ms ease, visibility 180ms;
 }
 
-.gallery-panel:not([data-expanded]) .gallery-tag { display: none; }
+.gallery-panel[data-expanded] .gallery-tag {
+  opacity: 1;
+  visibility: visible;
+}
 
 .pause-chapter {
   align-content: start;
