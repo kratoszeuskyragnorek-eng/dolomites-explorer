@@ -16,6 +16,7 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const interpolate = (from, to, amount) => from + (to - from) * amount;
 const minimumLoadingMs = 1800;
 const loadingFadeMs = 900;
+const continueHoverStart = .9;
 const continueScrollWindowMs = 650;
 const continueScrollThreshold = 660;
 
@@ -30,11 +31,13 @@ let inputReadyAt = 0;
 let mapZoomedOut = false;
 let continueScrollStartedAt = 0;
 let continueScrollAmount = 0;
+let continueShownByWheel = false;
+let continueHovered = false;
 
 function showMapError(message) {
-  resetMapContinue();
   clearTimeout(loadingTimer);
   loadingState = 'error';
+  resetMapContinue();
   inputReadyAt = performance.now() + 180;
   loader.style.removeProperty('opacity');
   loader.classList.remove('is-loading');
@@ -106,6 +109,7 @@ function fadeLoadingScreen() {
     explorer.removeAttribute('data-loading');
     loadingState = 'ready';
     inputReadyAt = performance.now() + 180;
+    updateMapContinue();
   }
   requestAnimationFrame(fadeFrame);
 }
@@ -273,11 +277,30 @@ function exertScroll(delta, limit = .65) {
   if (Math.abs(exitAmount) >= threshold) leaveMap(Math.sign(exitAmount));
 }
 
+function updateMapContinue() {
+  const show = phase === 'map' && loadingState === 'ready' && !document.fullscreenElement &&
+    (continueHovered || continueShownByWheel);
+  if (mapContinue.hidden === !show) return;
+  if (!show && document.activeElement === mapContinue) explorer.focus({preventScroll: true});
+  mapContinue.hidden = !show;
+}
+
+function setContinueHover(hovered) {
+  if (continueHovered === hovered) return;
+  continueHovered = hovered;
+  updateMapContinue();
+}
+
+function handleContinueHover(event) {
+  if (event.pointerType !== 'mouse') return;
+  setContinueHover(event.clientY >= window.innerHeight * continueHoverStart || mapContinue.contains(event.target));
+}
+
 function resetMapContinue() {
   continueScrollStartedAt = 0;
   continueScrollAmount = 0;
-  if (!mapContinue.hidden && document.activeElement === mapContinue) explorer.focus({preventScroll: true});
-  mapContinue.hidden = true;
+  continueShownByWheel = false;
+  updateMapContinue();
 }
 
 function handleWheel(event) {
@@ -298,7 +321,7 @@ function handleWheel(event) {
     resetMapContinue();
     return;
   }
-  if (!delta || !mapContinue.hidden) return;
+  if (!delta || continueShownByWheel) return;
 
   const now = performance.now();
   if (now - continueScrollStartedAt > continueScrollWindowMs) {
@@ -307,7 +330,10 @@ function handleWheel(event) {
   }
   // A single large wheel event cannot reveal the continuation.
   continueScrollAmount += Math.min(delta, continueScrollThreshold / 3);
-  if (continueScrollAmount >= continueScrollThreshold) mapContinue.hidden = false;
+  if (continueScrollAmount >= continueScrollThreshold) {
+    continueShownByWheel = true;
+    updateMapContinue();
+  }
 }
 
 let swipe = null;
@@ -378,6 +404,12 @@ if (!mapOnly) {
   window.addEventListener('resize', reframePortal);
   reducedMotion.addEventListener('change', reframePortal);
   window.addEventListener('wheel', handleWheel, {capture: true, passive: false});
+  explorer.addEventListener('pointerenter', handleContinueHover, {passive: true});
+  explorer.addEventListener('pointermove', handleContinueHover, {passive: true});
+  explorer.addEventListener('pointerleave', event => {
+    if (event.pointerType === 'mouse') setContinueHover(false);
+  }, {passive: true});
+  document.addEventListener('fullscreenchange', updateMapContinue);
   window.addEventListener('dolomites:zoom-limit', event => {
     mapZoomedOut = event.detail;
     if (!mapZoomedOut) resetMapContinue();
