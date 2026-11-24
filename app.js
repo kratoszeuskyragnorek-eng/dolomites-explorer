@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { SnowReveal, createWinterTerrain, snowShader } from './snow.js?v=flowing-melt';
+import { SnowReveal, createWinterTerrain, snowShader } from './snow.js?v=stable-melt-trail';
 
 const $ = id => document.getElementById(id);
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;

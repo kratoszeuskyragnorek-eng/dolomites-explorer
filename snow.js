@@ -5,8 +5,6 @@ export const snowShader = `
 uniform sampler2D meltMask;
 uniform sampler2D winterTerrain;
 uniform float snowEnabled;
-uniform float meltTime;
-uniform float meltRadius;
 uniform vec4 meltBounds;
 uniform vec2 terrainKm;
 uniform vec2 marmoladaUV;
@@ -24,18 +22,6 @@ float snowBands(vec2 position){
   float broad=snowNoise(position*vec2(.80,1.35));
   float drifts=snowNoise(position*vec2(3.4,7.0)+broad*2.0);
   return broad*.55+drifts*.45;
-}
-float thawAt(vec2 uv, vec2 ground, float drift, float chippedEdge){
-  if(any(lessThan(uv,meltBounds.xy))||any(greaterThan(uv,meltBounds.zw)))return 0.0;
-  vec2 scale=ground/meltRadius;
-  // Uneven thaw follows the ground. Two slow currents deform the edge as it opens and closes.
-  vec2 current=vec2(meltTime*.28,-meltTime*.21);
-  vec2 flow=vec2(snowNoise(scale*1.85+current),snowNoise(scale*1.53-current.yx+19.0))-.5;
-  vec2 ripple=sin(vec2(scale.y*3.2,scale.x*2.8)+vec2(meltTime*.87,-meltTime*.71));
-  vec2 uvOffset=(flow*.91+ripple*.11)*meltRadius/terrainKm;
-  float heat=texture2D(meltMask,uv+uvOffset).r;
-  float crust=.85+drift*.19+chippedEdge*.14;
-  return smoothstep(.012,.79,heat*crust);
 }
 float iceFractures(vec2 position){
   // Distorted, staggered cracks in exposed ice and tighter crevasses higher up.
@@ -55,8 +41,10 @@ vec3 winterReveal(vec3 summer,vec3 albedo,vec3 normal,float light,float visibili
   if(snowEnabled<.5)return summer;
   vec2 ground=uv*terrainKm;
   float drift=snowBands(ground);
-  float chippedEdge=snowNoise(ground*vec2(5.2,8.1));
-  float reveal=thawAt(uv,ground,drift,chippedEdge);
+  float reveal=0.0;
+  if(all(greaterThanEqual(uv,meltBounds.xy))&&all(lessThanEqual(uv,meltBounds.zw))){
+    reveal=texture2D(meltMask,uv).r;
+  }
   if(reveal>.999)return summer;
   vec4 terrainData=texture2D(winterTerrain,uv);
   float altitude=terrainData.r;
@@ -106,8 +94,6 @@ vec3 winterReveal(vec3 summer,vec3 albedo,vec3 normal,float light,float visibili
   float valleyMist=smoothstep(.25,.87,hollow)*(1.0-smoothstep(.38,.70,altitude))
     *(.045+.39*mistPockets);
   winter=mix(winter,vec3(.41,.46,.51),min(.45,haze*.66+valleyMist));
-  float thawEdge=smoothstep(.12,.45,reveal)*(1.0-smoothstep(.49,.88,reveal));
-  winter=mix(winter,vec3(.20,.29,.32),thawEdge*(.07+.16*chippedEdge));
   return mix(winter,summer,reveal);
 }`;
 
@@ -149,6 +135,8 @@ export function createWinterTerrain(meta, heights) {
 const fieldWidth = 512;
 const fieldHeight = 288;
 const hoverHoldMs = 1100;
+const radiusScale = 1.3;
+const edgeReach = 1.25;
 const refreezeRate = 1.25;
 const minimumHeat = 1 / 255;
 
@@ -162,7 +150,7 @@ export class SnowReveal {
     this.texture.minFilter=THREE.LinearFilter;this.texture.magFilter=THREE.LinearFilter;
     this.uniforms={
       meltMask:{value:this.texture},snowEnabled:{value:1},
-      meltTime:{value:0},meltRadius:{value:1},meltBounds:{value:new THREE.Vector4()}
+      meltBounds:{value:new THREE.Vector4()}
     };
     this.raycaster=new THREE.Raycaster();this.pointer=new THREE.Vector2();
     this.touchPointers=new Set();
@@ -281,7 +269,7 @@ export class SnowReveal {
     const y=(.5-hit.z/this.meta.depthKm)*fieldHeight-.5;
     const distance=hit.distanceTo(this.camera.position);
     const screenRadius=this.touch?72:105;
-    const radius=THREE.MathUtils.clamp(
+    const radius=radiusScale*THREE.MathUtils.clamp(
       2*distance*Math.tan(THREE.MathUtils.degToRad(this.camera.fov/2))*screenRadius/this.element.clientHeight,.30,7.5
     );
     const target={x,y,radius};
@@ -295,21 +283,25 @@ export class SnowReveal {
     };
     const rx=tip.radius/this.meta.widthKm*fieldWidth;
     const ry=tip.radius/this.meta.depthKm*fieldHeight;
-    const left=Math.max(0,Math.floor(Math.min(previous.x,tip.x)-rx));
-    const right=Math.min(fieldWidth-1,Math.ceil(Math.max(previous.x,tip.x)+rx));
-    const bottom=Math.max(0,Math.floor(Math.min(previous.y,tip.y)-ry));
-    const top=Math.min(fieldHeight-1,Math.ceil(Math.max(previous.y,tip.y)+ry));
+    const left=Math.max(0,Math.floor(Math.min(previous.x,tip.x)-rx*edgeReach));
+    const right=Math.min(fieldWidth-1,Math.ceil(Math.max(previous.x,tip.x)+rx*edgeReach));
+    const bottom=Math.max(0,Math.floor(Math.min(previous.y,tip.y)-ry*edgeReach));
+    const top=Math.min(fieldHeight-1,Math.ceil(Math.max(previous.y,tip.y)+ry*edgeReach));
     const dx=(tip.x-previous.x)/rx,dy=(tip.y-previous.y)/ry;
     const lengthSquared=Math.max(dx*dx+dy*dy,.0001);
     const amount=1-Math.exp(-dt*12);
 
-    // Accumulate heat along the continuous path between the last two positions.
+    // Bake the irregular edge into the terrain mask as the cursor passes.
+    // Beyond the cursor's reach, the mask only fades through refreezing.
     for(let row=bottom;row<=top;row++){
       for(let col=left;col<=right;col++){
         const px=(col-previous.x)/rx,py=(row-previous.y)/ry;
         const nearest=THREE.MathUtils.clamp((px*dx+py*dy)/lengthSquared,0,1);
         const distance=Math.hypot(px-nearest*dx,py-nearest*dy);
-        const influence=1-THREE.MathUtils.smoothstep(distance,.15,1);
+        if(distance>=edgeReach)continue;
+        const u=col/rx,v=row/ry;
+        const edge=.16*Math.sin(u*4.7+v*2.4)*Math.sin(v*4.1-u*1.6)+.09*Math.sin(u*11.3-v*8.2);
+        const influence=1-THREE.MathUtils.smoothstep(distance,.30,1+edge);
         if(!influence)continue;
         const index=row*fieldWidth+col;
         const heat=this.heat[index]+(1-this.heat[index])*amount*influence;
@@ -324,7 +316,6 @@ export class SnowReveal {
     }:{left,right,bottom,top};
     this.tip=tip;
     this.lastUV=[(tip.x+.5)/fieldWidth,(tip.y+.5)/fieldHeight];
-    this.uniforms.meltRadius.value=tip.radius;
     this.heatUpdates++;
   }
   update(time){
@@ -343,18 +334,15 @@ export class SnowReveal {
     if(this.hit&&this.brushEnabled)this.warmTrail(elapsed);
     const bounds=this.bounds;
     if(bounds){
-      const radius=this.uniforms.meltRadius.value;
-      const padX=radius*.65/this.meta.widthKm+.5/fieldWidth;
-      const padY=radius*.65/this.meta.depthKm+.5/fieldHeight;
+      // Linear filtering can sample an adjacent texel just outside the occupied bounds.
       this.uniforms.meltBounds.value.set(
-        bounds.left/fieldWidth-padX,bounds.bottom/fieldHeight-padY,
-        (bounds.right+1)/fieldWidth+padX,(bounds.top+1)/fieldHeight+padY
+        (bounds.left-.5)/fieldWidth,(bounds.bottom-.5)/fieldHeight,
+        (bounds.right+1.5)/fieldWidth,(bounds.top+1.5)/fieldHeight
       );
     }else{
       this.uniforms.meltBounds.value.set(1,1,0,0);
       this.lastUpdate=0;
     }
-    this.uniforms.meltTime.value=time/1000;
     this.texture.needsUpdate=true;
     return Boolean(bounds);
   }
