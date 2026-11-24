@@ -7,12 +7,12 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const touch = matchMedia('(pointer: coarse)').matches;
 const mapOnly = document.documentElement.classList.contains('map-only');
 const places = [
-  {id:'sella',name:'Sella',region:'В САМОМ СЕРДЦЕ ДОЛОМИТОВ',subtitle:'Массив Селла · Пиц-Боэ',lat:46.5088861,lon:11.8282806,description:'Мощный скальный массив между долинами Валь-Гардена, Валь-Бадия и Валь-ди-Фасса.'},
-  {id:'marmolada',name:'Marmolada',region:'КОРОЛЕВА ДОЛОМИТОВ',subtitle:'Мармолада · Пунта-Пения',lat:46.4344,lon:11.8496056,description:'Самый высокий массив Доломитов. На его северной стороне расположен ледник Мармолада.'},
-  {id:'cortina',name:'Cortina d’Ampezzo',region:'ДОЛИНА АМПЕЦЦО',subtitle:'Кортина-д’Ампеццо',lat:46.5405,lon:12.1357,description:'Альпийский город в широкой долине, окружённой скальными группами центральных Доломитов.'},
-  {id:'tre-cime',name:'Tre Cime',region:'ВОСТОЧНЫЕ ДОЛОМИТЫ',subtitle:'Тре-Чиме-ди-Лаваредо',lat:46.6186,lon:12.3026,description:'Три узнаваемые известняковые вершины на северо-востоке этой карты.'},
-  {id:'gardena',name:'Val Gardena',region:'СЕВЕРО-ЗАПАДНЫЕ ДОЛОМИТЫ',subtitle:'Валь-Гардена · Ортизеи',lat:46.5755,lon:11.6714,description:'Зелёная долина между альпийскими пастбищами и скальными массивами Одле и Сассолунго.'},
-  {id:'pale',name:'Pale di San Martino',region:'ЮЖНАЯ ЧАСТЬ КАРТЫ',subtitle:'Пале-ди-Сан-Мартино',lat:46.29,lon:11.842,description:'Протяжённый горный массив со светлыми скалами и высокогорным плато.'},
+  {id:'sella',name:'Sella',region:'В САМОМ СЕРДЦЕ ДОЛОМИТОВ',lat:46.5088861,lon:11.8282806,description:'Мощный скальный массив между долинами Валь-Гардена, Валь-Бадия и Валь-ди-Фасса.'},
+  {id:'marmolada',name:'Marmolada',region:'КОРОЛЕВА ДОЛОМИТОВ',lat:46.4344,lon:11.8496056,description:'Самый высокий массив Доломитов. На его северной стороне расположен ледник Мармолада.'},
+  {id:'cortina',name:'Cortina d’Ampezzo',region:'ДОЛИНА АМПЕЦЦО',lat:46.5405,lon:12.1357,description:'Альпийский город в широкой долине, окружённой скальными группами центральных Доломитов.'},
+  {id:'tre-cime',name:'Tre Cime',region:'ВОСТОЧНЫЕ ДОЛОМИТЫ',lat:46.6186,lon:12.3026,description:'Три узнаваемые известняковые вершины на северо-востоке этой карты.'},
+  {id:'gardena',name:'Val Gardena',region:'СЕВЕРО-ЗАПАДНЫЕ ДОЛОМИТЫ',lat:46.5755,lon:11.6714,description:'Зелёная долина между альпийскими пастбищами и скальными массивами Одле и Сассолунго.'},
+  {id:'pale',name:'Pale di San Martino',region:'ЮЖНАЯ ЧАСТЬ КАРТЫ',lat:46.29,lon:11.842,description:'Протяжённый горный массив со светлыми скалами и высокогорным плато.'},
 ];
 
 let renderer, scene, camera, controls, terrain, geometry, material, skirts;
@@ -26,35 +26,19 @@ const homeTarget=new THREE.Vector3();
 const homeOffset=new THREE.Vector3(0,53,19);
 
 function announce(message){$('announcement').textContent=message;}
-function setPanel(id,button,open){$(id).hidden=!open;$(button).setAttribute('aria-expanded',String(open));}
-function closeMenus(){setPanel('destinations','explore-toggle',false);setPanel('settings','settings-toggle',false);}
+function setSettingsOpen(open){
+  $('settings').hidden=!open;
+  $('settings-toggle').setAttribute('aria-expanded',String(open));
+}
 
-$('explore-toggle').addEventListener('click',()=>{
-  const open=$('destinations').hidden;
-  setPanel('settings','settings-toggle',false);
-  setPanel('destinations','explore-toggle',open);
-});
-$('settings-toggle').addEventListener('click',()=>{
-  const open=$('settings').hidden;
-  setPanel('destinations','explore-toggle',false);
-  setPanel('settings','settings-toggle',open);
-});
-$('about-open').addEventListener('click',()=>{closeMenus();$('about-dialog').showModal();});
-$('about-close').addEventListener('click',()=>$('about-dialog').close());
-$('about-dialog').addEventListener('click',event=>{if(event.target===$('about-dialog')){const r=event.target.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)event.target.close();}});
+$('settings-toggle').addEventListener('click',()=>setSettingsOpen($('settings').hidden));
 $('place-close').addEventListener('click',clearPlace);
-$('home').addEventListener('click',event=>{event.preventDefault();resetView();});
 $('reset').addEventListener('click',resetView);
 $('top-view').addEventListener('click',()=>{
   if(!ready)return;
   const distance=Math.min(95,Math.max(18,controls.getDistance()));
   moveCamera(controls.target.clone(),new THREE.Vector3(0,distance,.03));
   announce('Вид сверху');
-});
-$('compass').addEventListener('click',()=>{
-  if(!ready)return;
-  const offset=camera.position.clone().sub(controls.target);
-  moveCamera(controls.target.clone(),new THREE.Vector3(0,offset.y,Math.hypot(offset.x,offset.z)));
 });
 $('zoom-in').addEventListener('click',()=>zoom(.76));
 $('zoom-out').addEventListener('click',()=>zoom(1.3));
@@ -79,9 +63,10 @@ $('snow-enabled').addEventListener('change',()=>{
   if(!snow)return;
   snow.setEnabled($('snow-enabled').checked);
   $('snow-brush').disabled=!snow.enabled;$('snow-reset').disabled=!snow.enabled;
-  updateSnowHint();announce(snow.enabled?'Зимняя карта: снег тает под курсором':'Карта golden hour');
+  document.body.classList.toggle('winter',snow.enabled);
+  announce(snow.enabled?'Зимняя карта: снег тает под курсором':'Карта golden hour');
 });
-$('snow-brush').addEventListener('change',()=>{if(snow){snow.setBrushEnabled($('snow-brush').checked);updateSnowHint();}});
+$('snow-brush').addEventListener('change',()=>{snow?.setBrushEnabled($('snow-brush').checked);});
 $('snow-reset').addEventListener('click',()=>{if(snow){snow.reset();announce('Снежный покров восстановлен');}});
 $('relief').addEventListener('input',()=>{
   if(!ready)return;
@@ -92,15 +77,15 @@ $('relief').addEventListener('input',()=>{
   invalidate();
 });
 document.addEventListener('keydown',event=>{
-  if(event.key==='Escape'){closeMenus();clearPlace();}
-  if(!ready||$('about-dialog').open||/INPUT|SELECT|TEXTAREA/.test(event.target.tagName))return;
+  if(event.key==='Escape'){setSettingsOpen(false);clearPlace();}
+  if(!ready||/INPUT|SELECT|TEXTAREA/.test(event.target.tagName))return;
   if(!mapOnly&&!$('explorer').contains(event.target))return;
   if(event.key==='+'||event.key==='='){zoom(.8);event.preventDefault();}
   if(event.key==='-'){zoom(1.25);event.preventDefault();}
   if(event.key==='Home'){resetView();event.preventDefault();}
 });
 document.addEventListener('pointerdown',event=>{
-  if(!event.target.closest('.explore-dock')&&!event.target.closest('.bottom-right'))closeMenus();
+  if(!event.target.closest('.bottom-right'))setSettingsOpen(false);
 });
 
 function mercator(lat,lon){
@@ -112,12 +97,6 @@ function geographicToWorld(lat,lon){
   const x=((mx-xmin)/(xmax-xmin)-.5)*meta.widthKm;
   const z=((ymax-my)/(ymax-ymin)-.5)*meta.depthKm;
   return new THREE.Vector3(x,sampleHeight(x,z),z);
-}
-function worldToGeographic(x,z){
-  const [xmin,ymin,xmax,ymax]=meta.bounds_epsg3857;
-  const mx=xmin+(x/meta.widthKm+.5)*(xmax-xmin);
-  const my=ymax-(z/meta.depthKm+.5)*(ymax-ymin);
-  return [THREE.MathUtils.radToDeg(2*Math.atan(Math.exp(my/6378137))-Math.PI/2),THREE.MathUtils.radToDeg(mx/6378137)];
 }
 function sampleHeight(x,z){
   if(!heights||!meta)return 0;
@@ -183,12 +162,11 @@ async function changeLayer(layer){
 function setupPlaces(){
   for(const place of places){
     const button=document.createElement('button');button.type='button';button.className='marker';button.dataset.place=place.id;button.setAttribute('aria-label',`Перелететь к ${place.name}`);button.innerHTML=`<span class="marker-dot"></span><span class="marker-name">${place.name}</span>`;button.addEventListener('click',()=>selectPlace(place));$('markers').append(button);markers.push({place,button});
-    const item=document.createElement('button');item.type='button';item.className='destination';item.dataset.destination=place.id;item.innerHTML=`<span><strong>${place.name}</strong><small>${place.subtitle}</small></span><b aria-hidden="true">↗</b>`;item.addEventListener('click',()=>selectPlace(place));$('destinations').append(item);
   }
 }
 function selectPlace(place){
   if(!ready)return;
-  closeMenus();selected=place.id;
+  setSettingsOpen(false);selected=place.id;
   $('place-region').textContent=place.region;$('place-title').textContent=place.name;$('place-description').textContent=place.description;
   $('place-coordinate').textContent=`${place.lat.toFixed(4)}° N · ${place.lon.toFixed(4)}° E`;
   $('place-card').hidden=false;
@@ -207,7 +185,7 @@ function moveCamera(target,offset,duration=1200){
   flight={start:performance.now(),duration:reducedMotion?0:duration,fromPosition:camera.position.clone(),fromTarget:controls.target.clone(),toPosition:target.clone().add(offset),toTarget:target.clone()};
   controls.enabled=false;invalidate();
 }
-function resetView(){if(!ready)return;clearPlace();closeMenus();moveCamera(homeTarget,homeOffset);announce('Общий вид Доломитов');}
+function resetView(){if(!ready)return;clearPlace();setSettingsOpen(false);moveCamera(homeTarget,homeOffset);announce('Общий вид Доломитов');}
 function zoom(factor){
   if(!ready)return;
   const offset=camera.position.clone().sub(controls.target),length=THREE.MathUtils.clamp(offset.length()*factor,controls.minDistance,controls.maxDistance);
@@ -274,9 +252,6 @@ function draw(time){
     window.dispatchEvent(new Event('dolomites:ready'));
     announce('Зимняя карта загружена. Проведите курсором или пальцем, чтобы растопить снег.');
   }
-  $('compass-arrow').style.transform=`rotate(${-THREE.MathUtils.radToDeg(controls.getAzimuthalAngle())}deg)`;
-  const [lat,lon]=worldToGeographic(controls.target.x,controls.target.z);
-  $('camera-coordinate').textContent=`${lat.toFixed(3)}° N   ${lon.toFixed(3)}° E`;
   if(moving||snowAnimating||--demandFrames>0){if(!frame)frame=requestAnimationFrame(draw);}else previousTime=0;
 }
 function resize(){
@@ -369,21 +344,11 @@ export async function initialize(){
     });
     terrain=new THREE.Mesh(geometry,material);scene.add(terrain);updateRelief();
     setupPlaces();resize();
-    updateSnowHint();
+    document.body.classList.toggle('winter',snow.enabled);
     controls.update();ready=true;
     window.dolomitesDiagnostics=()=>({ready:ready&&presented,layer:currentLayer,selected,verticalScale,camera:camera.position.toArray(),target:controls.target.toArray(),triangles:renderer.info.render.triangles,drawCalls:renderer.info.render.calls,renderFrames:renderer.info.render.frame,vertexCount:geometry.attributes.position.count,canvasSize:renderer.getSize(new THREE.Vector2()).toArray(),activeFlight:Boolean(flight),boundsKm:[meta.widthKm,meta.depthKm],textureSize:[uniforms.mapTexture.value.image.width,uniforms.mapTexture.value.image.height],snow:snow.diagnostics()});
     invalidate();
   }catch(error){console.error('Dolomiti initialization:',error);showError('Не удалось открыть 3D-карту');}
-}
-function updateSnowHint(){
-  const melting=snow?.enabled&&snow?.brushEnabled;
-  const zoomHint=mapOnly?'Колесо — масштаб':'Ctrl и колесо — масштаб';
-  document.body.classList.toggle('winter',Boolean(snow?.enabled));
-  const controlsHint=touch
-    ?(melting?'Проведите пальцем — снег тает · Два пальца — карта':'Один палец — вращение · Два пальца — масштаб и перемещение')
-    :(melting?`Водите курсором — снег тает · Тяните — вращение · ${zoomHint}`:`Тяните — вращение · ${zoomHint} · Правая кнопка — перемещение`);
-  const exitHint=touch?'Два длинных свайпа вверх — продолжить':'Прокрутите несколько раз, чтобы продолжить';
-  $('gesture-hint').textContent=mapOnly?controlsHint:`${controlsHint} · ${exitHint}`;
 }
 function showError(message){
   window.dispatchEvent(new CustomEvent('dolomites:error',{detail:message}));

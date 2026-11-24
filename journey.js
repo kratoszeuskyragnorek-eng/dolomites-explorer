@@ -64,7 +64,7 @@ async function startMap() {
     // Present the loading scene above the portal before starting WebGL and the terrain requests.
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     loadingStartedAt = performance.now();
-    const { initialize } = await import('./app.js?v=stable-melt-trail');
+    const { initialize } = await import('./app.js?v=clean-map');
     await initialize();
   } catch (error) {
     console.error('Dolomiti initialization:', error);
@@ -248,7 +248,7 @@ function exertScroll(delta, limit = .65) {
 function handleWheel(event) {
   cancelEntry();
   if (!root.classList.contains('map-gated') || event.ctrlKey || event.metaKey || document.fullscreenElement ||
-    event.target.closest?.('.settings, .destinations, dialog')) return;
+    event.target.closest?.('.settings')) return;
   event.preventDefault();
   if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
   const unit = event.deltaMode === 1 ? 20 : event.deltaMode === 2 ? explorer.clientHeight : 1;
@@ -260,7 +260,7 @@ function startSwipe(event) {
   cancelEntry();
   const point = event.touches[0];
   swipe = event.touches.length === 1 && canLeaveMap() &&
-    !event.target.closest?.('.settings, .destinations, dialog')
+    !event.target.closest?.('.settings')
     ? {id: point.identifier, x: point.clientX, y: point.clientY}
     : null;
 }
