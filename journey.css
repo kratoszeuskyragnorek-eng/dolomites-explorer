@@ -477,8 +477,24 @@ html:not(.map-only) #explorer:fullscreen {
   text-align: center;
 }
 
-.pause-chapter h2 span {
-  display: block;
+.pause-chapter h2 { position: relative; }
+
+.pause-title-copy { display: block; }
+.pause-title-copy > span { display: inline-block; }
+.pause-title-copy > span:last-child { display: block; }
+
+.pause-title-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .is-morphing .pause-title-copy { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pause-title-overlay { display: none; }
 }
 
 .trail-chapter {

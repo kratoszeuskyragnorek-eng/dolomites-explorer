@@ -399,6 +399,59 @@ function enterThroughPortal(event) {
   entryFrame = requestAnimationFrame(step);
 }
 
+async function preparePauseTitle() {
+  const title = document.getElementById('pause-title');
+  if (!title || reducedMotion.matches || typeof title.animate !== 'function' || typeof title.getAnimations !== 'function') return;
+
+  const phrases = Array.from(title.querySelector('.pause-title-copy').children);
+  const overlay = document.createElement('span');
+  overlay.className = 'pause-title-overlay';
+  overlay.setAttribute('aria-hidden', 'true');
+  const layer = document.createElement('span');
+  overlay.append(layer);
+
+  let morph;
+  function finish() {
+    title.classList.remove('is-morphing');
+    overlay.remove();
+    morph?.destroy();
+  }
+
+  try {
+    const [{TextMorph}] = await Promise.all([import('./vendor/torph-0.1.4.js'), document.fonts.ready]);
+    if (reducedMotion.matches || title.getBoundingClientRect().bottom < 0) return;
+    title.append(overlay);
+    morph = new TextMorph({element: layer, duration: 1000, locale: 'ru'});
+    // Prime Torph with an invisible glyph. Its first render is deliberately static.
+    morph.update('\u200B');
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.intersectionRatio < .15) return;
+      observer.disconnect();
+      if (reducedMotion.matches) {
+        finish();
+        return;
+      }
+      // Keep the same line breaks as the responsive, semantic heading.
+      const text = phrases.map((phrase, index) => {
+        const separator = index === 0 ? '' : phrase.offsetTop === phrases[index - 1].offsetTop ? ' ' : '\n';
+        return separator + phrase.textContent;
+      }).join('');
+      try {
+        morph.update(text);
+        // From an empty line Torph may animate only the text, with no container animation.
+        const animations = layer.getAnimations({subtree: true});
+        Promise.allSettled(animations.map(animation => animation.finished)).then(finish);
+      } catch {
+        finish();
+      }
+    }, {threshold: .15});
+    title.classList.add('is-morphing');
+    observer.observe(title);
+  } catch {
+    finish();
+  }
+}
+
 if (!mapOnly) {
   window.addEventListener('scroll', requestPortalFrame, {passive: true});
   window.addEventListener('resize', reframePortal);
@@ -433,6 +486,7 @@ if (!mapOnly) {
   animateHeroTitle();
 
   if ('IntersectionObserver' in window) {
+    preparePauseTitle();
     const observer = new IntersectionObserver(entries => {
       for (const entry of entries) {
         if (!entry.isIntersecting) continue;
@@ -440,7 +494,7 @@ if (!mapOnly) {
         observer.unobserve(entry.target);
       }
     }, {threshold: .14});
-    const staggered = '.relief-steps, .erosion-copy, .route-gallery, .gallery-chapter h2, .pause-chapter h2';
+    const staggered = '.relief-steps, .erosion-copy, .route-gallery, .gallery-chapter h2';
     story.classList.add('is-animated');
     for (const element of story.querySelectorAll('[data-reveal]')) {
       if (element.parentElement.matches(staggered)) {
