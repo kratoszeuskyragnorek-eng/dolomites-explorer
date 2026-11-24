@@ -379,6 +379,8 @@ function draw(time){
     window.dispatchEvent(new CustomEvent('dolomites:zoom-limit',{detail:zoomedOut}));
   }
   uniforms.fogStart.value=Math.max(12,distance-6);
+  const fogExtent=uniforms.fogExtent.value;
+  uniforms.fogFocus.value.set(.55*controls.target.x/fogExtent.x,-.55*controls.target.z/fogExtent.y);
   const snowAnimating=snow?.update(time)??false;
   renderer.render(scene,camera);
   updateMarkers();
@@ -441,7 +443,9 @@ export async function initialize(){
     const [marmoladaLat, marmoladaLon] = meta.landmark_coordinates['Marmolada / Punta Penia'];
     const marmolada = geographicToWorld(marmoladaLat, marmoladaLon);
     uniforms={...snow.uniforms,mapTexture:{value:texture},sunDirection:{value:new THREE.Vector3(-.86,.23,-.45).normalize()},sunsetHazeColor:{value:new THREE.Color('#efbf8b')},horizonMap:{value:horizonTexture},reliefScale:{value:verticalScale},satelliteLayer:{value:0},
-      fogColor:{value:fogColor},fogStart:{value:0},terrainMarginKm:{value:terrainMarginKm},
+      fogColor:{value:fogColor},fogStart:{value:0},
+      fogExtent:{value:new THREE.Vector2(meta.widthKm/2+terrainMarginKm,meta.depthKm/2+terrainMarginKm)},
+      fogFocus:{value:new THREE.Vector2()},
       winterTerrain:{value:createWinterTerrain(meta,heights)},terrainKm:{value:new THREE.Vector2(meta.widthKm,meta.depthKm)},
       marmoladaUV:{value:new THREE.Vector2(marmolada.x/meta.widthKm+.5,.5-marmolada.z/meta.depthKm)}};
     material=new THREE.ShaderMaterial({
@@ -449,7 +453,8 @@ export async function initialize(){
       vertexShader:`varying vec2 mapUv; varying vec3 terrainNormal; varying float cameraDistance;
         void main(){mapUv=uv;terrainNormal=normalize(mat3(modelMatrix)*normal);vec4 world=modelMatrix*vec4(position,1.0);cameraDistance=length(cameraPosition-world.xyz);gl_Position=projectionMatrix*viewMatrix*world;}`,
       fragmentShader:`uniform sampler2D mapTexture; uniform sampler2D horizonMap; uniform vec3 sunDirection; uniform vec3 fogColor; uniform float reliefScale; uniform float satelliteLayer;
-        uniform vec3 sunsetHazeColor; uniform float fogStart; uniform float terrainMarginKm;
+        uniform vec3 sunsetHazeColor; uniform float fogStart;
+        uniform vec2 fogExtent; uniform vec2 fogFocus;
         varying vec2 mapUv; varying vec3 terrainNormal; varying float cameraDistance;
         ${snowShader}
         void main(){
@@ -469,9 +474,12 @@ export async function initialize(){
           vec3 summer=mix(color,sunsetHazeColor,haze);
           vec3 surface=winterReveal(summer,albedo,normal,light,visibility,haze,mapUv,sourceUv);
           float distanceFog=smoothstep(fogStart,fogStart+46.0,cameraDistance);
-          vec2 edgeKm=min(mapUv,1.0-mapUv)*terrainKm+terrainMarginKm;
-          float edgeFog=1.0-smoothstep(.6,8.5+terrainMarginKm,min(edgeKm.x,edgeKm.y));
-          gl_FragColor=vec4(mix(surface,fogColor,max(distanceFog,edgeFog)),1.0);
+          vec2 mapPoint=(mapUv-.5)*terrainKm/fogExtent;
+          // Shift the clear area with the camera target while keeping the model boundary white.
+          vec2 ovalPoint=(mapPoint-fogFocus)/(1.0-mapPoint*fogFocus);
+          float ovalFog=smoothstep(.66,.99,length(ovalPoint));
+          float fog=mix(distanceFog,1.0,ovalFog);
+          gl_FragColor=vec4(mix(surface,fogColor,fog),1.0);
           #include <colorspace_fragment>
         }`,
       side:THREE.FrontSide,
