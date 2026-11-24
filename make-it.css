@@ -208,22 +208,6 @@
   display: block;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .journey-story.is-animated .gallery-chapter h2 [data-reveal] {
-    transition: none;
-  }
-
-  .journey-story.is-animated .gallery-chapter h2 .revealed {
-    animation: reveal-gallery-heading .7s cubic-bezier(.2,.65,.25,1) both;
-    animation-delay: var(--reveal-delay, 0ms);
-  }
-}
-
-@keyframes reveal-gallery-heading {
-  from { opacity: 0; translate: 0 28px; }
-  to { opacity: 1; translate: none; }
-}
-
 .route-gallery {
   --gallery-duration: 440ms;
   --gallery-easing: cubic-bezier(.22,.61,.36,1);
@@ -238,13 +222,10 @@
   min-height: clamp(340px, 38.889vw, 560px);
 }
 
-.route-gallery .gallery-panel,
-.journey-story.is-animated .route-gallery .gallery-panel[data-reveal] {
+.route-gallery .gallery-panel {
   transition:
     flex-grow var(--gallery-duration) var(--gallery-easing),
-    flex-basis var(--gallery-duration) var(--gallery-easing),
-    opacity .7s ease var(--reveal-delay, 0ms),
-    translate .85s cubic-bezier(.2,.65,.25,1) var(--reveal-delay, 0ms);
+    flex-basis var(--gallery-duration) var(--gallery-easing);
 }
 
 .route-gallery .gallery-panel[data-expanded] {

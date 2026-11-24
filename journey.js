@@ -1,3 +1,5 @@
+import { prepareStoryReveals } from './story-reveal.js?v=1';
+
 const portal = document.querySelector('.portal');
 const stage = portal.querySelector('.portal-stage');
 const aperture = stage.querySelector('.portal-aperture');
@@ -35,6 +37,7 @@ let continueScrollStartedAt = 0;
 let continueScrollAmount = 0;
 let continueShownByWheel = false;
 let continueHovered = false;
+let renderStoryReveals;
 
 function resetLoadingAppearance() {
   loader.style.removeProperty('opacity');
@@ -203,6 +206,10 @@ function renderPortal() {
   stage.classList.toggle('is-through', through);
   explorer.inert = phase !== 'map';
   story.inert = phase === 'map';
+  if (!reducedMotion.matches && (phase === 'story' || phase === 'leaving')) {
+    renderStoryReveals ??= prepareStoryReveals(story);
+    renderStoryReveals();
+  }
   if (phase === 'story' && !reducedMotion.matches) {
     const {top, height} = trailChapter.getBoundingClientRect();
     const trailProgress = Math.max(0, Math.min(1, (window.innerHeight - top) / height));
@@ -431,11 +438,9 @@ async function preparePauseTitle() {
     return;
   }
 
-  const section = title.closest('.pause-chapter');
   const phrases = Array.from(title.querySelector('.pause-title-copy').children);
   const clampProgress = value => Math.min(1, Math.max(0, value));
   const morphDuration = 1000;
-  const captionStart = .67;
   const overlay = document.createElement('span');
   overlay.className = 'pause-title-overlay';
   overlay.setAttribute('aria-hidden', 'true');
@@ -452,7 +457,6 @@ async function preparePauseTitle() {
 
   function restoreTitle() {
     title.classList.remove('is-morphing');
-    section.style.removeProperty('--pause-caption-progress');
   }
 
   function disablePauseMotion() {
@@ -529,8 +533,6 @@ async function preparePauseTitle() {
       try {
         if (progress < 1) seekTitle(progress);
         title.classList.toggle('is-morphing', progress < 1);
-        const captionProgress = clampProgress((progress - captionStart) / (1 - captionStart));
-        section.style.setProperty('--pause-caption-progress', captionProgress);
       } catch {
         disablePauseMotion();
       }
@@ -586,24 +588,5 @@ if (!mapOnly) {
   stage.querySelectorAll('a[href="#explorer"]').forEach(link => link.addEventListener('click', enterThroughPortal));
   renderPortal();
   animateHeroTitle();
-
-  if ('IntersectionObserver' in window) {
-    preparePauseTitle();
-    const observer = new IntersectionObserver(entries => {
-      for (const entry of entries) {
-        if (!entry.isIntersecting) continue;
-        entry.target.classList.add('revealed');
-        observer.unobserve(entry.target);
-      }
-    }, {threshold: .14});
-    const staggered = '.relief-steps, .erosion-copy, .route-gallery, .gallery-chapter h2';
-    story.classList.add('is-animated');
-    for (const element of story.querySelectorAll('[data-reveal]')) {
-      if (element.parentElement.matches(staggered)) {
-        const index = Array.from(element.parentElement.children).indexOf(element);
-        element.style.setProperty('--reveal-delay', `${index * 80}ms`);
-      }
-      observer.observe(element);
-    }
-  }
+  preparePauseTitle();
 } else startMap();

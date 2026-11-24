@@ -527,11 +527,6 @@ html:not(.map-only) #explorer:fullscreen {
 @media (prefers-reduced-motion: no-preference) {
   .pause-chapter .is-morphing .pause-title-copy { opacity: 0; }
   .pause-chapter .is-morphing .pause-title-overlay { visibility: visible; }
-
-  .pause-caption {
-    opacity: var(--pause-caption-progress, 1);
-    translate: 0 calc(18px * (1 - var(--pause-caption-progress, 1)));
-  }
 }
 
 .trail-chapter {
@@ -637,17 +632,62 @@ html:not(.map-only) #explorer:fullscreen {
   text-align: center;
 }
 
+.journey-story .story-word {
+  display: inline-block;
+  max-width: 100%;
+}
+
 @media (prefers-reduced-motion: no-preference) {
-  .journey-story.is-animated [data-reveal] {
-    opacity: 0;
-    translate: 0 28px;
-    transition: opacity .7s ease, translate .85s cubic-bezier(.2,.65,.25,1);
-    transition-delay: var(--reveal-delay, 0ms);
+  .journey-story [data-story-pending] {
+    --story-word-rise: 14px;
+    --story-word-blur: 4px;
   }
 
-  .journey-story.is-animated :is(.revealed, :focus-within)[data-reveal] {
+  .journey-story [data-story-reveal="heading"] {
+    --story-word-rise: 24px;
+    --story-word-blur: 10px;
+  }
+
+  .journey-story [data-story-reveal="control"] {
+    --story-word-rise: 0px;
+    --story-word-blur: 3px;
+  }
+
+  .journey-story :where([data-story-reveal="heading"], [data-story-reveal="copy"], [data-story-reveal="control"])[data-story-pending] .story-word {
+    --word-progress: clamp(0, (var(--story-reveal-progress) - var(--story-word-start)) / .45, 1);
+    opacity: var(--word-progress);
+    translate: 0 calc(var(--story-word-rise) * (1 - var(--word-progress)));
+    filter: blur(calc(var(--story-word-blur) * (1 - var(--word-progress))))
+      brightness(calc(.55 + .45 * var(--word-progress)));
+  }
+
+  .journey-story [data-story-reveal="block"][data-story-pending] {
+    opacity: var(--story-reveal-progress);
+    translate: 0 calc(24px * (1 - var(--story-reveal-progress)));
+  }
+
+  .journey-story .route-fields label[data-story-pending] {
+    translate: none;
+  }
+
+  .journey-story [data-story-reveal="media"][data-story-pending] {
+    opacity: var(--story-reveal-progress);
+    scale: calc(1.025 - .025 * var(--story-reveal-progress));
+  }
+
+  .journey-story [data-story-pending]:focus-within,
+  .journey-story [data-story-pending]:focus-within .story-word {
     opacity: 1;
     translate: none;
+    scale: none;
+    filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (max-width: 650px) {
+  .journey-story [data-story-reveal="heading"] {
+    --story-word-blur: 5px;
+    --story-word-rise: 16px;
   }
 }
 
