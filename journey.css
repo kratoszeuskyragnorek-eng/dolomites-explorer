@@ -213,7 +213,7 @@ html:not(.map-only).map-gated {
 }
 
 #loading {
-  background: #221a15;
+  background: #fff;
   backdrop-filter: none;
   color: #fff;
   isolation: isolate;
@@ -228,7 +228,9 @@ html:not(.map-only).map-gated {
   inset: calc(-1 * var(--mountain-bleed));
   z-index: -1;
   background: linear-gradient(rgb(34 26 21 / 29%) 0 0), url('./assets/story/jagged-peaks.png') center / cover;
-  filter: blur(var(--mountain-blur-radius));
+  background-color: #221a15;
+  filter: blur(var(--mountain-blur-radius)) grayscale(var(--loading-grayscale, 0));
+  opacity: var(--loading-photo-opacity, 1);
 }
 
 html:not(.map-only) #explorer[data-loading] {

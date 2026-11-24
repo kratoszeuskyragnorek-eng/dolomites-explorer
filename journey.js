@@ -15,6 +15,7 @@ const mapOnly = root.classList.contains('map-only');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const interpolate = (from, to, amount) => from + (to - from) * amount;
 const minimumLoadingMs = 1800;
+const loadingColorTransitionMs = 2000;
 const loadingFadeMs = 900;
 const continueHoverStart = .9;
 const continueScrollWindowMs = 650;
@@ -34,12 +35,18 @@ let continueScrollAmount = 0;
 let continueShownByWheel = false;
 let continueHovered = false;
 
+function resetLoadingAppearance() {
+  loader.style.removeProperty('opacity');
+  loader.style.removeProperty('--loading-grayscale');
+  loader.style.removeProperty('--loading-photo-opacity');
+}
+
 function showMapError(message) {
   clearTimeout(loadingTimer);
   loadingState = 'error';
   resetMapContinue();
   inputReadyAt = performance.now() + 180;
-  loader.style.removeProperty('opacity');
+  resetLoadingAppearance();
   loader.classList.remove('is-loading');
   explorer.setAttribute('data-loading', '');
   loader.hidden = false;
@@ -84,14 +91,25 @@ window.addEventListener('dolomites:error', event => showMapError(event.detail));
 window.addEventListener('dolomites:ready', () => {
   viewport.setAttribute('aria-busy', 'false');
   const remaining = Math.max(0, minimumLoadingMs - (performance.now() - loadingStartedAt));
-  loadingTimer = setTimeout(fadeLoadingScreen, remaining);
+  loadingTimer = setTimeout(revealLoadedMap, remaining);
 });
 document.getElementById('retry').addEventListener('click', () => location.reload());
 
-function fadeLoadingScreen() {
-  const duration = reducedMotion.matches ? 260 : loadingFadeMs;
+function revealLoadedMap() {
+  const animateBackground = !reducedMotion.matches;
+  const duration = animateBackground ? loadingFadeMs : 260;
+  let firstColorFrame;
   let previous;
   let elapsed = 0;
+
+  function colorFrame(time) {
+    if (loadingState !== 'loading') return;
+    firstColorFrame ??= time;
+    const progress = Math.min(1, (time - firstColorFrame) / loadingColorTransitionMs);
+    loader.style.setProperty('--loading-grayscale', String(ease(0, .36, progress)));
+    loader.style.setProperty('--loading-photo-opacity', String(1 - ease(.52, 1, progress)));
+    requestAnimationFrame(progress < 1 ? colorFrame : fadeFrame);
+  }
 
   function fadeFrame(time) {
     if (loadingState !== 'loading') return;
@@ -104,14 +122,14 @@ function fadeLoadingScreen() {
       return;
     }
     loader.hidden = true;
-    loader.style.removeProperty('opacity');
+    resetLoadingAppearance();
     loader.classList.remove('is-loading');
     explorer.removeAttribute('data-loading');
     loadingState = 'ready';
     inputReadyAt = performance.now() + 180;
     updateMapContinue();
   }
-  requestAnimationFrame(fadeFrame);
+  requestAnimationFrame(animateBackground ? colorFrame : fadeFrame);
 }
 
 function ease(start, end, progress) {
