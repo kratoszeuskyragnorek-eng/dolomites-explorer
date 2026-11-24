@@ -37,7 +37,7 @@ float iceFractures(vec2 position){
   float cross=(1.0-smoothstep(.012,.012+crossWidth,split))*.35;
   return max(crevasse,cross)*smoothstep(.27,.67,snowNoise(position*8.1));
 }
-vec3 winterReveal(vec3 summer,vec3 albedo,vec3 normal,float light,float visibility,float haze,vec2 uv){
+vec3 winterReveal(vec3 summer,vec3 albedo,vec3 normal,float light,float visibility,float haze,vec2 uv,vec2 sourceUv){
   if(snowEnabled<.5)return summer;
   vec2 ground=uv*terrainKm;
   float drift=snowBands(ground);
@@ -46,7 +46,7 @@ vec3 winterReveal(vec3 summer,vec3 albedo,vec3 normal,float light,float visibili
     reveal=texture2D(meltMask,uv).r;
   }
   if(reveal>.999)return summer;
-  vec4 terrainData=texture2D(winterTerrain,uv);
+  vec4 terrainData=texture2D(winterTerrain,sourceUv);
   float altitude=terrainData.r;
   float shelter=terrainData.g;
   float hollow=terrainData.b;

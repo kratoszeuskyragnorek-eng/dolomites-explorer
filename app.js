@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { SnowReveal, createWinterTerrain, snowShader } from './snow.js?v=stable-melt-trail';
+import { SnowReveal, createWinterTerrain, snowShader } from './snow.js?v=terrain-fog-margin';
 
 const $ = id => document.getElementById(id);
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -25,6 +25,7 @@ const projected=new THREE.Vector3();
 const homeTarget=new THREE.Vector3();
 const homeOffset=new THREE.Vector3(0,53,19);
 const fogColor=new THREE.Color(0xffffff);
+const terrainMarginKm=5;
 
 function announce(message){$('announcement').textContent=message;}
 function setSettingsOpen(open){
@@ -108,9 +109,46 @@ function sampleHeight(x,z){
   const a=u-x0,b=v-y0;
   return (heights[y0*cols+x0]*(1-a)*(1-b)+heights[y0*cols+x1]*a*(1-b)+heights[y1*cols+x0]*(1-a)*b+heights[y1*cols+x1]*a*b)/1000*verticalScale;
 }
+function sampleTerrainHeight(x,z){
+  const halfWidth=meta.widthKm/2,halfDepth=meta.depthKm/2;
+  const edgeX=THREE.MathUtils.clamp(x,-halfWidth,halfWidth);
+  const edgeZ=THREE.MathUtils.clamp(z,-halfDepth,halfDepth);
+  const outside=Math.max(Math.abs(x-edgeX),Math.abs(z-edgeZ));
+  if(outside===0)return sampleHeight(x,z);
+
+  // Carry the slope across the survey edge, then level it out in the fog.
+  const edge=sampleHeight(edgeX,edgeZ);
+  const inside=sampleHeight(2*edgeX-x,2*edgeZ-z);
+  const continuation=1-THREE.MathUtils.smoothstep(outside,0,terrainMarginKm);
+  return edge+(edge-inside)*continuation;
+}
+
+function createTerrainGeometry(){
+  const columns=touch?256:512;
+  const rows=Math.round(columns*9/16);
+  const marginCells=touch?8:12;
+  const axis=(size,cells)=>Array.from({length:cells+2*marginCells+1},(_,index)=>{
+    const cell=index-marginCells;
+    const coreCell=THREE.MathUtils.clamp(cell,0,cells);
+    return (coreCell/cells-.5)*size+(cell-coreCell)*terrainMarginKm/marginCells;
+  });
+  const x=axis(meta.widthKm,columns);
+  const z=axis(meta.depthKm,rows);
+  const meshGeometry=new THREE.PlaneGeometry(1,1,x.length-1,z.length-1);
+  const {position,uv}=meshGeometry.attributes;
+  for(let row=0;row<z.length;row++){
+    for(let column=0;column<x.length;column++){
+      const index=row*x.length+column;
+      position.setXYZ(index,x[column],0,z[row]);
+      uv.setXY(index,x[column]/meta.widthKm+.5,.5-z[row]/meta.depthKm);
+    }
+  }
+  return meshGeometry;
+}
+
 function updateRelief(){
   const position=geometry.attributes.position;
-  for(let i=0;i<position.count;i++)position.setY(i,sampleHeight(position.getX(i),position.getZ(i)));
+  for(let i=0;i<position.count;i++)position.setY(i,sampleTerrainHeight(position.getX(i),position.getZ(i)));
   position.needsUpdate=true;
   geometry.computeVertexNormals();
   geometry.computeBoundingSphere();
@@ -122,12 +160,13 @@ function updateRelief(){
 function createSkirts(){
   const vertices=[];
   const segments=128;
+  const halfWidth=meta.widthKm/2+terrainMarginKm,halfDepth=meta.depthKm/2+terrainMarginKm;
   const edges=[[-1,-1,1,-1],[1,-1,1,1],[1,1,-1,1],[-1,1,-1,-1]];
   for(const [ax,az,bx,bz] of edges){
     for(let i=0;i<segments;i++){
       const t0=i/segments,t1=(i+1)/segments;
-      const x0=THREE.MathUtils.lerp(ax,bx,t0)*meta.widthKm/2,z0=THREE.MathUtils.lerp(az,bz,t0)*meta.depthKm/2;
-      const x1=THREE.MathUtils.lerp(ax,bx,t1)*meta.widthKm/2,z1=THREE.MathUtils.lerp(az,bz,t1)*meta.depthKm/2;
+      const x0=THREE.MathUtils.lerp(ax,bx,t0)*halfWidth,z0=THREE.MathUtils.lerp(az,bz,t0)*halfDepth;
+      const x1=THREE.MathUtils.lerp(ax,bx,t1)*halfWidth,z1=THREE.MathUtils.lerp(az,bz,t1)*halfDepth;
       const y0=sampleHeight(x0,z0),y1=sampleHeight(x1,z1);
       vertices.push(x0,y0,z0,x0,-.6,z0,x1,y1,z1,x1,y1,z1,x0,-.6,z0,x1,-.6,z1);
     }
@@ -196,10 +235,11 @@ function cancelFlight(){if(flight){flight=null;controls.enabled=true;}invalidate
 function visibleFromCamera(point){
   // Height-field occlusion avoids expensive per-marker triangle raycasts.
   const direction=point.clone().sub(camera.position);
+  const halfWidth=meta.widthKm/2+terrainMarginKm,halfDepth=meta.depthKm/2+terrainMarginKm;
   for(let i=1;i<22;i++){
     const t=i/22,x=camera.position.x+direction.x*t,z=camera.position.z+direction.z*t;
-    if(Math.abs(x)>meta.widthKm/2||Math.abs(z)>meta.depthKm/2)continue;
-    if(camera.position.y+direction.y*t<sampleHeight(x,z)+.03)return false;
+    if(Math.abs(x)>halfWidth||Math.abs(z)>halfDepth)continue;
+    if(camera.position.y+direction.y*t<sampleTerrainHeight(x,z)+.03)return false;
   }
   return true;
 }
@@ -220,7 +260,7 @@ function constrainCamera(){
   const y=sampleHeight(x,z);
   const delta=new THREE.Vector3(x-controls.target.x,y-controls.target.y,z-controls.target.z);
   controls.target.add(delta);camera.position.add(delta);
-  const ground=sampleHeight(camera.position.x,camera.position.z);
+  const ground=sampleTerrainHeight(camera.position.x,camera.position.z);
   camera.position.y=Math.max(camera.position.y,ground+.65);
 }
 function invalidate(){
@@ -309,14 +349,12 @@ export async function initialize(){
       },{capture:true,passive:true});
     }
     renderer.domElement.addEventListener('wheel',cancelFlight,{passive:true});
-    const segments=touch?256:512;
-    geometry=new THREE.PlaneGeometry(meta.widthKm,meta.depthKm,segments,Math.round(segments*9/16));
-    geometry.rotateX(-Math.PI/2);
+    geometry=createTerrainGeometry();
     snow=new SnowReveal({element:renderer.domElement,camera,controls,meta,sampleHeight,heightScale:()=>verticalScale,invalidate,canPaint:()=>!flight&&!controls.autoRotate,touch});
     const [marmoladaLat, marmoladaLon] = meta.landmark_coordinates['Marmolada / Punta Penia'];
     const marmolada = geographicToWorld(marmoladaLat, marmoladaLon);
     uniforms={...snow.uniforms,mapTexture:{value:texture},sunDirection:{value:new THREE.Vector3(-.86,.23,-.45).normalize()},sunsetHazeColor:{value:new THREE.Color('#efbf8b')},horizonMap:{value:horizonTexture},reliefScale:{value:verticalScale},satelliteLayer:{value:0},
-      fogColor:{value:fogColor},fogStart:{value:0},
+      fogColor:{value:fogColor},fogStart:{value:0},terrainMarginKm:{value:terrainMarginKm},
       winterTerrain:{value:createWinterTerrain(meta,heights)},terrainKm:{value:new THREE.Vector2(meta.widthKm,meta.depthKm)},
       marmoladaUV:{value:new THREE.Vector2(marmolada.x/meta.widthKm+.5,.5-marmolada.z/meta.depthKm)}};
     material=new THREE.ShaderMaterial({
@@ -324,12 +362,14 @@ export async function initialize(){
       vertexShader:`varying vec2 mapUv; varying vec3 terrainNormal; varying float cameraDistance;
         void main(){mapUv=uv;terrainNormal=normalize(mat3(modelMatrix)*normal);vec4 world=modelMatrix*vec4(position,1.0);cameraDistance=length(cameraPosition-world.xyz);gl_Position=projectionMatrix*viewMatrix*world;}`,
       fragmentShader:`uniform sampler2D mapTexture; uniform sampler2D horizonMap; uniform vec3 sunDirection; uniform vec3 fogColor; uniform float reliefScale; uniform float satelliteLayer;
-        uniform vec3 sunsetHazeColor; uniform float fogStart;
+        uniform vec3 sunsetHazeColor; uniform float fogStart; uniform float terrainMarginKm;
         varying vec2 mapUv; varying vec3 terrainNormal; varying float cameraDistance;
         ${snowShader}
-        void main(){vec3 albedo=texture2D(mapTexture,mapUv).rgb;vec3 color=albedo;
+        void main(){
+          vec2 sourceUv=2.0*clamp(mapUv,0.0,1.0)-mapUv;
+          vec3 albedo=texture2D(mapTexture,sourceUv).rgb;vec3 color=albedo;
           vec3 normal=normalize(terrainNormal);float light=max(dot(normal,sunDirection),0.0);
-          float horizon=texture2D(horizonMap,mapUv).r*2.0*reliefScale;
+          float horizon=texture2D(horizonMap,sourceUv).r*2.0*reliefScale;
           float sunSlope=sunDirection.y/length(sunDirection.xz);
           float visibility=1.0-smoothstep(sunSlope-.022,sunSlope+.035,horizon);
           // Warm low-angle direct light, with cooler skylight filling terrain shadows.
@@ -340,11 +380,10 @@ export async function initialize(){
           color=mix(vec3(luminance),color,.96);
           float haze=smoothstep(24.0,150.0,cameraDistance)*.29;
           vec3 summer=mix(color,sunsetHazeColor,haze);
-          vec3 surface=winterReveal(summer,albedo,normal,light,visibility,haze,mapUv);
+          vec3 surface=winterReveal(summer,albedo,normal,light,visibility,haze,mapUv,sourceUv);
           float distanceFog=smoothstep(fogStart,fogStart+46.0,cameraDistance);
-          // Keep the terrain boundary white even when it is close to the camera.
-          vec2 edgeKm=min(mapUv,1.0-mapUv)*terrainKm;
-          float edgeFog=1.0-smoothstep(.6,8.5,min(edgeKm.x,edgeKm.y));
+          vec2 edgeKm=min(mapUv,1.0-mapUv)*terrainKm+terrainMarginKm;
+          float edgeFog=1.0-smoothstep(.6,8.5+terrainMarginKm,min(edgeKm.x,edgeKm.y));
           gl_FragColor=vec4(mix(surface,fogColor,max(distanceFog,edgeFog)),1.0);
           #include <colorspace_fragment>
         }`,

@@ -62,7 +62,7 @@ async function startMap() {
     // Present the loading scene above the portal before starting WebGL and the terrain requests.
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     loadingStartedAt = performance.now();
-    const { initialize } = await import('./app.js?v=white-map-fog');
+    const { initialize } = await import('./app.js?v=terrain-fog-margin');
     await initialize();
   } catch (error) {
     console.error('Dolomiti initialization:', error);
