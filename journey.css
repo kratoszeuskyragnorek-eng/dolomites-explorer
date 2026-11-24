@@ -209,11 +209,23 @@ html:not(.map-only).map-gated {
 }
 
 #loading {
-  background: linear-gradient(rgb(34 26 21 / 29%) 0 0), url('./assets/story/jagged-peaks.png') center / cover;
+  --loading-blur: clamp(44px, 7vmin, 84px);
+  background: #221a15;
   backdrop-filter: none;
   color: #fff;
+  isolation: isolate;
+  overflow: clip;
   text-align: center;
   transition: none;
+}
+
+#loading::before {
+  content: '';
+  position: absolute;
+  inset: calc(-2 * var(--loading-blur));
+  z-index: -1;
+  background: linear-gradient(rgb(34 26 21 / 29%) 0 0), url('./assets/story/jagged-peaks.png') center / cover;
+  filter: blur(var(--loading-blur));
 }
 
 html:not(.map-only) #explorer[data-loading] {
@@ -224,8 +236,12 @@ html:not(.map-only) #explorer[data-loading] {
   font: 400 clamp(1.35rem, 2.42vw, 2.2rem)/1.2 'Prosto One', Arial, sans-serif;
 }
 
-/* Letter entrance based on Tobias Ahlin’s Moving Letters #1 (Thursday). */
 @media (prefers-reduced-motion: no-preference) {
+  #loading.is-loading::before {
+    animation: loading-background-blur 500ms ease-out;
+  }
+
+  /* Letter entrance based on Tobias Ahlin’s Moving Letters #1 (Thursday). */
   #loading.is-loading #loading-message {
     display: inline-block;
   }
@@ -235,6 +251,10 @@ html:not(.map-only) #explorer[data-loading] {
     animation: loading-letter-in 600ms cubic-bezier(.19, 1, .22, 1) both;
     animation-delay: calc(var(--loading-letter-index) * 70ms);
   }
+}
+
+@keyframes loading-background-blur {
+  from { filter: blur(0); }
 }
 
 @keyframes loading-letter-in {
