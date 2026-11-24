@@ -5,6 +5,7 @@ const copy = stage.querySelector('.portal-copy');
 const header = stage.querySelector('.journey-header');
 const explorer = document.getElementById('explorer');
 const viewport = document.getElementById('viewport');
+const mapContinue = document.getElementById('map-continue');
 const loader = document.getElementById('loading');
 const loadingMessage = document.getElementById('loading-message');
 const loadingAnnouncement = document.getElementById('loading-announcement');
@@ -15,6 +16,8 @@ const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const interpolate = (from, to, amount) => from + (to - from) * amount;
 const minimumLoadingMs = 1800;
 const loadingFadeMs = 900;
+const continueScrollWindowMs = 650;
+const continueScrollThreshold = 660;
 
 let loadingStartedAt = 0;
 let loadingState = 'idle';
@@ -24,8 +27,12 @@ let previousScroll = window.scrollY;
 let exitAmount = 0;
 let lastExitInput = 0;
 let inputReadyAt = 0;
+let mapZoomedOut = false;
+let continueScrollStartedAt = 0;
+let continueScrollAmount = 0;
 
 function showMapError(message) {
+  resetMapContinue();
   clearTimeout(loadingTimer);
   loadingState = 'error';
   inputReadyAt = performance.now() + 180;
@@ -62,7 +69,7 @@ async function startMap() {
     // Present the loading scene above the portal before starting WebGL and the terrain requests.
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     loadingStartedAt = performance.now();
-    const { initialize } = await import('./app.js?v=place-card-transition');
+    const { initialize } = await import('./app.js?v=map-wheel-continue');
     await initialize();
   } catch (error) {
     console.error('Dolomiti initialization:', error);
@@ -213,6 +220,7 @@ function lockMap() {
   phase = 'map';
   exitAmount = 0;
   lastExitInput = 0;
+  resetMapContinue();
   inputReadyAt = performance.now() + 260;
   root.classList.add('map-gated');
   window.scrollTo(0, mapPosition);
@@ -228,6 +236,7 @@ function leaveMap(direction) {
   const duration = reducedMotion.matches ? 0 : 860;
   const start = performance.now();
   phase = 'leaving';
+  resetMapContinue();
   explorer.inert = true;
 
   function slide(time) {
@@ -264,14 +273,41 @@ function exertScroll(delta, limit = .65) {
   if (Math.abs(exitAmount) >= threshold) leaveMap(Math.sign(exitAmount));
 }
 
+function resetMapContinue() {
+  continueScrollStartedAt = 0;
+  continueScrollAmount = 0;
+  if (!mapContinue.hidden && document.activeElement === mapContinue) explorer.focus({preventScroll: true});
+  mapContinue.hidden = true;
+}
+
 function handleWheel(event) {
   cancelEntry();
   if (!root.classList.contains('map-gated') || event.ctrlKey || event.metaKey || document.fullscreenElement ||
-    event.target.closest?.('.settings')) return;
+    event.target.closest?.('.settings, .place-card')) return;
   event.preventDefault();
-  if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
-  const unit = event.deltaMode === 1 ? 20 : event.deltaMode === 2 ? explorer.clientHeight : 1;
-  exertScroll(event.deltaY * unit);
+  if (!canLeaveMap() || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+  const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? explorer.clientHeight : 1;
+  const delta = event.deltaY * unit;
+  if (loadingState === 'error') {
+    exertScroll(delta);
+    return;
+  }
+  // The map forwards wheel events over markers to the viewport as well.
+  if (!event.target.closest?.('#viewport')) return;
+  if (delta < 0 || !mapZoomedOut) {
+    resetMapContinue();
+    return;
+  }
+  if (!delta || !mapContinue.hidden) return;
+
+  const now = performance.now();
+  if (now - continueScrollStartedAt > continueScrollWindowMs) {
+    continueScrollStartedAt = now;
+    continueScrollAmount = 0;
+  }
+  // A single large wheel event cannot reveal the continuation.
+  continueScrollAmount += Math.min(delta, continueScrollThreshold / 3);
+  if (continueScrollAmount >= continueScrollThreshold) mapContinue.hidden = false;
 }
 
 let swipe = null;
@@ -342,6 +378,13 @@ if (!mapOnly) {
   window.addEventListener('resize', reframePortal);
   reducedMotion.addEventListener('change', reframePortal);
   window.addEventListener('wheel', handleWheel, {capture: true, passive: false});
+  window.addEventListener('dolomites:zoom-limit', event => {
+    mapZoomedOut = event.detail;
+    if (!mapZoomedOut) resetMapContinue();
+  });
+  mapContinue.addEventListener('click', () => {
+    if (canLeaveMap()) leaveMap(1);
+  });
   window.addEventListener('touchstart', startSwipe, {capture: true, passive: true});
   window.addEventListener('touchend', endSwipe, {capture: true, passive: true});
   window.addEventListener('touchcancel', () => { swipe = null; }, {capture: true, passive: true});

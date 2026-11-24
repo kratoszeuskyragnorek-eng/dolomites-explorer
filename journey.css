@@ -279,6 +279,38 @@ html:not(.map-only) #explorer:fullscreen {
   margin-top: 0;
 }
 
+.map-continue {
+  position: absolute;
+  z-index: 8;
+  bottom: max(5px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 5px 20px 3px;
+  color: #171917;
+  background: none;
+  font: 400 clamp(28px, 2.85vw, 44px)/1 var(--font-heading);
+  text-shadow: 0 1px 8px #fff;
+  animation: show-map-continue 330ms ease-out both;
+}
+
+.map-continue svg {
+  width: clamp(27px, 3vw, 38px);
+  height: auto;
+  stroke-width: 2.3;
+  transition: transform 180ms ease;
+}
+
+.map-continue:hover svg { transform: translateY(3px); }
+#explorer:fullscreen .map-continue { display: none; }
+
+@keyframes show-map-continue {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translateX(-50%); }
+}
+
 .brand .map-title {
   margin: 6px 0 7px;
   font: 400 46px/1 var(--font-heading);

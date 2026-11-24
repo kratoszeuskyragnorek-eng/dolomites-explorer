@@ -21,6 +21,7 @@ let meta, heights, uniforms, snow;
 let ready=false, presented=false, verticalScale=1, currentLayer='style', selected=null, flight=null;
 let placeCardEntrance, placeCardExit;
 let frame=0, previousTime=0, demandFrames=0, disposed=false;
+let mapZoomedOut=false;
 const textures=new Map();
 const markers=[];
 const projected=new THREE.Vector3();
@@ -275,6 +276,34 @@ function clearPlace(){
   placeCard.hidden=true;
   for(const marker of markers)marker.button.classList.remove('selected');
 }
+function bindMapPointerEvents(canvas){
+  let press;
+  const isTap = event => press?.pointerId===event.pointerId &&
+    Math.hypot(event.clientX-press.clientX, event.clientY-press.clientY)<=7;
+  canvas.addEventListener('pointerdown',event=>{
+    cancelFlight();
+    press=event.isPrimary && event.button===0 ? event : null;
+  },{capture:true});
+  canvas.addEventListener('pointermove',event=>{
+    if(press && !isTap(event))press=null;
+  });
+  canvas.addEventListener('pointerup',event=>{
+    if(isTap(event))clearPlace();
+    press=null;
+  });
+  canvas.addEventListener('pointercancel',()=>{press=null;});
+  canvas.addEventListener('wheel',event=>{
+    if(Math.abs(event.deltaX)>Math.abs(event.deltaY)){
+      event.stopImmediatePropagation();
+      return;
+    }
+    cancelFlight();
+  },{capture:true,passive:true});
+  $('markers').addEventListener('wheel',event=>{
+    event.preventDefault();
+    canvas.dispatchEvent(new WheelEvent('wheel',event));
+  },{passive:false});
+}
 function moveCamera(target,offset,duration=1200){
   if(!ready)return;
   snow?.leave();
@@ -343,7 +372,13 @@ function draw(time){
     constrainCamera();
   }
   camera.updateMatrixWorld();
-  uniforms.fogStart.value=Math.max(12,controls.getDistance()-6);
+  const distance=controls.getDistance();
+  const zoomedOut=distance>=controls.maxDistance-.5;
+  if(!mapOnly && zoomedOut!==mapZoomedOut){
+    mapZoomedOut=zoomedOut;
+    window.dispatchEvent(new CustomEvent('dolomites:zoom-limit',{detail:zoomedOut}));
+  }
+  uniforms.fogStart.value=Math.max(12,distance-6);
   const snowAnimating=snow?.update(time)??false;
   renderer.render(scene,camera);
   updateMarkers();
@@ -373,9 +408,7 @@ export async function initialize(){
     renderer.outputColorSpace=THREE.SRGBColorSpace;
     renderer.setClearColor(fogColor);
     renderer.domElement.tabIndex=0;
-    renderer.domElement.setAttribute('aria-label',mapOnly
-      ?'3D-карта: мышью вращайте и перемещайте, колесом меняйте масштаб'
-      :'3D-карта: перетаскивайте для вращения, Ctrl и колесо для масштаба');
+    renderer.domElement.setAttribute('aria-label','3D-карта. Перетаскивайте для вращения, колесом меняйте масштаб.');
     $('viewport').append(renderer.domElement);
     renderer.domElement.addEventListener('contextmenu',event=>event.preventDefault());
     renderer.domElement.addEventListener('webglcontextlost',event=>{event.preventDefault();ready=false;if(frame)cancelAnimationFrame(frame);frame=0;showError('3D-сцена приостановлена браузером. Перезагрузите карту.');});
@@ -402,13 +435,7 @@ export async function initialize(){
     controls.screenSpacePanning=false;controls.zoomToCursor=true;
     controls.autoRotateSpeed=.32;
     controls.addEventListener('change',invalidate);
-    renderer.domElement.addEventListener('pointerdown',cancelFlight,{capture:true});
-    if(!mapOnly){
-      renderer.domElement.addEventListener('wheel',event=>{
-        if(!event.ctrlKey&&!document.fullscreenElement)event.stopImmediatePropagation();
-      },{capture:true,passive:true});
-    }
-    renderer.domElement.addEventListener('wheel',cancelFlight,{passive:true});
+    bindMapPointerEvents(renderer.domElement);
     geometry=createTerrainGeometry();
     snow=new SnowReveal({element:renderer.domElement,camera,controls,meta,sampleHeight,heightScale:()=>verticalScale,invalidate,canPaint:()=>!flight&&!controls.autoRotate,touch});
     const [marmoladaLat, marmoladaLon] = meta.landmark_coordinates['Marmolada / Punta Penia'];
