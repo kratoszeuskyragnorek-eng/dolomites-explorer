@@ -10,6 +10,7 @@ const loader = document.getElementById('loading');
 const loadingMessage = document.getElementById('loading-message');
 const loadingAnnouncement = document.getElementById('loading-announcement');
 const story = document.querySelector('.journey-story');
+const trailChapter = document.getElementById('trail-rules');
 const root = document.documentElement;
 const mapOnly = root.classList.contains('map-only');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -202,6 +203,11 @@ function renderPortal() {
   stage.classList.toggle('is-through', through);
   explorer.inert = phase !== 'map';
   story.inert = phase === 'map';
+  if (phase === 'story' && !reducedMotion.matches) {
+    const {top, height} = trailChapter.getBoundingClientRect();
+    const trailProgress = Math.max(0, Math.min(1, (window.innerHeight - top) / height));
+    trailChapter.style.setProperty('--trail-dash-offset', 1 - trailProgress);
+  }
 }
 
 let renderFrame = 0;
@@ -592,7 +598,7 @@ if (!mapOnly) {
     }, {threshold: .14});
     const staggered = '.relief-steps, .erosion-copy, .route-gallery, .gallery-chapter h2';
     story.classList.add('is-animated');
-    for (const element of story.querySelectorAll('[data-reveal], .trail-chapter')) {
+    for (const element of story.querySelectorAll('[data-reveal]')) {
       if (element.parentElement.matches(staggered)) {
         const index = Array.from(element.parentElement.children).indexOf(element);
         element.style.setProperty('--reveal-delay', `${index * 80}ms`);
