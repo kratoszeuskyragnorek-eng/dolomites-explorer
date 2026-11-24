@@ -9,8 +9,8 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%2329382b'/%3E%3Cpath d='M6 29 17 10l6 12 4-7 8 14' fill='none' stroke='%23f5f2df' stroke-width='2'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="./assets/story/fonts/fonts.css?v=forum-jost">
   <link rel="stylesheet" href="./styles.css?v=forum-jost">
-  <link rel="stylesheet" href="./journey.css?v=map-wheel-continue">
-  <link rel="stylesheet" href="./make-it.css?v=route-gallery-accordion">
+  <link rel="stylesheet" href="./journey.css?v=relief-process">
+  <link rel="stylesheet" href="./make-it.css?v=relief-process">
   <script>if(new URLSearchParams(location.search).get('view')==='map')document.documentElement.classList.add('map-only');</script>
   <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js"}}</script>
 </head>
@@ -106,18 +106,47 @@
     </section>
 
     <div id="history" class="journey-only journey-story" tabindex="-1">
-      <section class="chapter relief-chapter" aria-labelledby="relief-title" data-node-id="140:719">
-        <img class="chapter-image" src="./assets/story/golden-relief.png" alt="" loading="lazy" decoding="async">
+      <section class="chapter relief-chapter" aria-labelledby="relief-title" data-node-id="151:789">
+        <img class="chapter-image" src="./assets/story/relief-sunset.png" alt="" loading="lazy" decoding="async">
         <div class="chapter-content">
           <h2 id="relief-title" data-reveal>Рельеф, который<br>меняется</h2>
-          <ul class="relief-factors" aria-label="Процессы, меняющие рельеф">
-            <li data-reveal><span>Лёд</span><strong aria-hidden="true">01</strong></li>
-            <li data-reveal><span>Вода</span><strong aria-hidden="true">02</strong></li>
-            <li data-reveal><span>Осыпь</span><strong aria-hidden="true">03</strong></li>
-            <li data-reveal><span>Движение</span><strong aria-hidden="true">04</strong></li>
-          </ul>
-          <div class="chapter-caption" data-reveal><span>Доломитовые Альпы</span><span>Италия</span></div>
+          <p data-reveal>Доломиты кажутся неподвижными, но их рельеф продолжает меняться. Талая вода просачивается в трещины и при замерзании расширяет их. Постепенно от скал отделяются обломки, которые смещаются вниз и образуют осыпи.</p>
         </div>
+      </section>
+
+      <section class="relief-process" aria-labelledby="relief-process-title" data-node-id="158:392">
+        <h2 id="relief-process-title" data-reveal>Как это<br>работает?</h2>
+        <ol class="relief-steps" role="list">
+          <li data-reveal>
+            <span class="relief-step-number" aria-hidden="true">1</span>
+            <div>
+              <h3>Снег</h3>
+              <p>Таяние снега наполняет склон влагой и запускает движение воды.</p>
+            </div>
+          </li>
+          <li data-reveal>
+            <span class="relief-step-number" aria-hidden="true">2</span>
+            <div>
+              <h3>Вода</h3>
+              <p>Талая и дождевая вода проникает в поры и трещины горной породы.</p>
+            </div>
+          </li>
+          <li data-reveal>
+            <span class="relief-step-number" aria-hidden="true">3</span>
+            <div>
+              <h3>Лёд</h3>
+              <p>При замерзании вода расширяется. Повторение этих циклов постепенно расширяет трещины.</p>
+            </div>
+          </li>
+          <li data-reveal>
+            <span class="relief-step-number" aria-hidden="true">4</span>
+            <div>
+              <h3>Осыпь</h3>
+              <p>Отколовшиеся обломки смещаются вниз по склону и накапливаются у подножия скал.</p>
+            </div>
+          </li>
+        </ol>
+        <img class="relief-transition" src="./assets/story/relief-transition.svg" alt="" width="348" height="348" loading="lazy" decoding="async">
       </section>
 
       <section class="chapter erosion-chapter" aria-labelledby="erosion-title" data-node-id="140:587">
@@ -248,7 +277,7 @@
     </div>
   </main>
 
-  <script type="module" src="./journey.js?v=bottom-map-hint"></script>
+  <script type="module" src="./journey.js?v=relief-process"></script>
   <script type="module" src="./route-picker.js?v=route-gallery-accordion"></script>
 </body>
 </html>

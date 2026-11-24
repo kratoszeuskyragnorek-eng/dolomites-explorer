@@ -440,7 +440,7 @@ if (!mapOnly) {
         observer.unobserve(entry.target);
       }
     }, {threshold: .14});
-    const staggered = '.relief-factors, .erosion-copy, .route-gallery, .gallery-chapter h2, .pause-chapter h2';
+    const staggered = '.relief-steps, .erosion-copy, .route-gallery, .gallery-chapter h2, .pause-chapter h2';
     story.classList.add('is-animated');
     for (const element of story.querySelectorAll('[data-reveal]')) {
       if (element.parentElement.matches(staggered)) {
