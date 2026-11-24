@@ -206,6 +206,56 @@ html:not(.map-only) #explorer[data-loading] {
   font: 400 clamp(1.35rem, 2.42vw, 2.2rem)/1.2 'Prosto One', Arial, sans-serif;
 }
 
+/* Entrance based on Tobias Ahlin’s Moving Letters #1 (Thursday). */
+@media (prefers-reduced-motion: no-preference) {
+  #loading.is-loading #loading-message {
+    --loading-reveal-easing: cubic-bezier(.19, 1, .22, 1);
+    --loading-letter-duration: 600ms;
+    --loading-letter-stagger: 70ms;
+    --loading-line-start: max(0ms, calc(var(--loading-letter-count) * var(--loading-letter-stagger) + var(--loading-letter-duration) - 875ms));
+    display: inline-block;
+    position: relative;
+  }
+
+  #loading.is-loading .loading-letter {
+    display: inline-block;
+    animation: loading-letter-in var(--loading-letter-duration) var(--loading-reveal-easing) both;
+    animation-delay: calc(var(--loading-letter-index) * var(--loading-letter-stagger));
+  }
+
+  #loading.is-loading #loading-message::before,
+  #loading.is-loading #loading-message::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: .08em;
+    background: currentColor;
+    transform-origin: left center;
+    animation: loading-line-in 700ms var(--loading-reveal-easing) both;
+  }
+
+  #loading.is-loading #loading-message::before {
+    top: -.12em;
+    animation-delay: calc(var(--loading-line-start) + 160ms);
+  }
+
+  #loading.is-loading #loading-message::after {
+    bottom: -.12em;
+    animation-delay: calc(var(--loading-line-start) + 80ms);
+  }
+}
+
+@keyframes loading-letter-in {
+  from { opacity: 0; transform: scale(.3); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes loading-line-in {
+  from { opacity: .5; transform: scaleX(0); }
+  to { opacity: 1; transform: scaleX(1); }
+}
+
 #loading p {
   margin: 0 18px;
   color: #fff;

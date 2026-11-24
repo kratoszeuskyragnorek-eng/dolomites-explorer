@@ -9,7 +9,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%2329382b'/%3E%3Cpath d='M6 29 17 10l6 12 4-7 8 14' fill='none' stroke='%23f5f2df' stroke-width='2'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="./styles.css?v=through-window">
   <link rel="stylesheet" href="./assets/story/fonts/fonts.css">
-  <link rel="stylesheet" href="./journey.css?v=visible-loading">
+  <link rel="stylesheet" href="./journey.css?v=loading-letters">
   <link rel="stylesheet" href="./make-it.css?v=2">
   <script>if(new URLSearchParams(location.search).get('view')==='map')document.documentElement.classList.add('map-only');</script>
   <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js"}}</script>
@@ -105,7 +105,10 @@
 
     <div class="loading" id="loading">
       <div class="loading-emblem" aria-hidden="true"></div>
-      <div class="loading-status" role="status"><span id="loading-message">Загрузка…</span></div>
+      <div class="loading-status" role="status">
+        <span id="loading-announcement" class="sr-only"></span>
+        <span id="loading-message" aria-hidden="true">Загрузка…</span>
+      </div>
       <div class="loading-recovery" hidden><p>Проверь подключение и поддержку WebGL в браузере.</p><button id="retry" type="button">Попробовать снова</button><a id="fallback" href="./assets/styled.webp">Открыть изображение карты</a></div>
     </div>
     <div id="announcement" class="sr-only" role="status" aria-live="polite"></div>
@@ -262,7 +265,7 @@
     <p class="about-controls">Двигайте курсор — снег плавно тает, открывая карту golden hour. След постепенно снова покрывается снегом. Мышью можно вращать и приближать карту. На сенсорном экране один палец растапливает снег, два — перемещают и приближают карту. Для вращения одним пальцем отключите таяние в настройках.</p>
     <a class="source-link" href="./assets/SOURCES.txt" target="_blank" rel="noopener">Источники данных и лицензии ↗</a>
   </dialog>
-  <script type="module" src="./journey.js?v=visible-loading-fade"></script>
+  <script type="module" src="./journey.js?v=loading-letters"></script>
   <script type="module" src="./route-picker.js?v=1"></script>
 </body>
 </html>

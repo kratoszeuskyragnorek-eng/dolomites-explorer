@@ -7,6 +7,8 @@ const header = stage.querySelector('.journey-header');
 const explorer = document.getElementById('explorer');
 const viewport = document.getElementById('viewport');
 const loader = document.getElementById('loading');
+const loadingMessage = document.getElementById('loading-message');
+const loadingAnnouncement = document.getElementById('loading-announcement');
 const story = document.querySelector('.journey-story');
 const root = document.documentElement;
 const mapOnly = root.classList.contains('map-only');
@@ -33,13 +35,29 @@ function showMapError(message) {
   explorer.setAttribute('data-loading', '');
   loader.hidden = false;
   viewport.setAttribute('aria-busy', 'false');
-  loader.querySelector('#loading-message').textContent = message;
+  loadingMessage.textContent = message;
+  loadingAnnouncement.textContent = message;
   loader.querySelector('.loading-recovery').hidden = false;
+}
+
+function prepareLoadingMessage() {
+  const message = loadingMessage.textContent;
+  loadingAnnouncement.textContent = message;
+  const letters = Array.from(message, (character, index) => {
+    const letter = document.createElement('span');
+    letter.className = 'loading-letter';
+    letter.textContent = character;
+    letter.style.setProperty('--loading-letter-index', index + 1);
+    return letter;
+  });
+  loadingMessage.style.setProperty('--loading-letter-count', letters.length);
+  loadingMessage.replaceChildren(...letters);
 }
 
 async function startMap() {
   if (loadingState !== 'idle') return;
   loadingState = 'loading';
+  prepareLoadingMessage();
   explorer.setAttribute('data-loading', '');
   loader.classList.add('is-loading');
   try {
