@@ -123,17 +123,17 @@ function frameOpening(progress) {
   const scale = interpolate(1, reach, approach);
   const focusX = interpolate(openingX + openingWidth * .53, scene.width / 2, approach);
   const focusY = interpolate(openingY + openingHeight * .43, scene.height / 2, approach);
+  const maskTop = focusY - openingHeight * scale * .43;
+  const headerCovered = progress > 0 && maskTop < header.offsetHeight;
 
   const view = ease(.08, .9, progress);
   const copyFade = ease(.08, .58, progress);
-  const navFade = ease(.40, .77, progress);
   const style = stage.style;
   style.setProperty('--opening-width', `${openingWidth * scale}px`);
   style.setProperty('--opening-height', `${openingHeight * scale}px`);
   style.setProperty('--opening-x', `${focusX - openingWidth * scale * .53}px`);
-  style.setProperty('--opening-y', `${focusY - openingHeight * scale * .43}px`);
+  style.setProperty('--opening-y', `${maskTop}px`);
   style.setProperty('--open', ease(.74, .9, progress));
-  style.setProperty('--art-top', `${top * (1 - ease(0, .47, progress))}px`);
   style.setProperty('--photo-x', `${interpolate(left - figure.width * .6109, 0, view)}px`);
   style.setProperty('--photo-y', `${interpolate(top - figure.height * .6274, 0, view)}px`);
   style.setProperty('--photo-width', `${interpolate(figure.width * 2.2218, scene.width, view)}px`);
@@ -143,9 +143,8 @@ function frameOpening(progress) {
   style.setProperty('--photo-opacity', interpolate(.8, .71, view));
   style.setProperty('--copy-opacity', 1 - copyFade);
   style.setProperty('--copy-rise', `${-scene.height * .27 * ease(.02, .65, progress)}px`);
-  style.setProperty('--nav-opacity', 1 - navFade);
   copy.inert = copyFade >= 1;
-  header.inert = navFade >= 1;
+  header.inert = headerCovered;
 }
 
 let lastProgress = -1;
