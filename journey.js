@@ -401,54 +401,118 @@ function enterThroughPortal(event) {
 
 async function preparePauseTitle() {
   const title = document.getElementById('pause-title');
-  if (!title || reducedMotion.matches || typeof title.animate !== 'function' || typeof title.getAnimations !== 'function') return;
+  if (!title || typeof title.animate !== 'function' || typeof title.getAnimations !== 'function') return;
+  if (reducedMotion.matches) {
+    reducedMotion.addEventListener('change', preparePauseTitle, {once: true});
+    return;
+  }
 
+  const section = title.closest('.pause-chapter');
   const phrases = Array.from(title.querySelector('.pause-title-copy').children);
+  const clampProgress = value => Math.min(1, Math.max(0, value));
+  const wordStagger = .28;
+  const captionStart = .3;
   const overlay = document.createElement('span');
   overlay.className = 'pause-title-overlay';
   overlay.setAttribute('aria-hidden', 'true');
   const layer = document.createElement('span');
   overlay.append(layer);
 
+  const listeners = new AbortController();
   let morph;
-  function finish() {
+  function restoreTitle() {
     title.classList.remove('is-morphing');
+    section.style.removeProperty('--pause-caption-progress');
+  }
+
+  function disablePauseMotion() {
+    listeners.abort();
+    restoreTitle();
     overlay.remove();
     morph?.destroy();
   }
 
   try {
     const [{TextMorph}] = await Promise.all([import('./vendor/torph-0.1.4.js'), document.fonts.ready]);
-    if (reducedMotion.matches || title.getBoundingClientRect().bottom < 0) return;
     title.append(overlay);
-    morph = new TextMorph({element: layer, duration: 1000, locale: 'ru'});
-    // Prime Torph with an invisible glyph. Its first render is deliberately static.
-    morph.update('\u200B');
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.intersectionRatio < .15) return;
-      observer.disconnect();
+
+    let effects = [];
+    let lastProgress;
+    let frame = 0;
+
+    function buildEffects() {
+      morph?.destroy();
+      layer.replaceChildren();
+      morph = new TextMorph({element: layer, duration: 1000, locale: 'ru'});
+      let text = phrases[0].textContent;
+      for (let index = 1; index < phrases.length; index++) {
+        const inSameLine = phrases[index].offsetTop === phrases[index - 1].offsetTop;
+        text += (inSameLine ? ' ' : '\n') + phrases[index].textContent;
+      }
+
+      // Torph renders the first value without animating. The zero-width glyph primes its empty state.
+      morph.update('\u200B');
+      morph.update(text);
+      const animations = layer.getAnimations({subtree: true});
+      const words = [...new Set(animations.map(({effect}) => effect.target))]
+        .filter(target => target !== layer && target.textContent.trim());
+
+      effects = animations.map(animation => {
+        animation.pause();
+        const {duration, delay} = animation.effect.getTiming();
+        const wordIndex = Math.max(0, words.indexOf(animation.effect.target));
+        const stagger = wordStagger * wordIndex / Math.max(1, words.length - 1);
+        return {animation, duration, delay, stagger};
+      });
+    }
+
+    function update() {
+      frame = 0;
       if (reducedMotion.matches) {
-        finish();
+        restoreTitle();
+        lastProgress = undefined;
         return;
       }
-      // Keep the same line breaks as the responsive, semantic heading.
-      const text = phrases.map((phrase, index) => {
-        const separator = index === 0 ? '' : phrase.offsetTop === phrases[index - 1].offsetTop ? ' ' : '\n';
-        return separator + phrase.textContent;
-      }).join('');
+
+      const start = innerHeight * .85;
+      const end = innerHeight * .3;
+      const progress = clampProgress((start - title.getBoundingClientRect().top) / (start - end));
+      if (progress === lastProgress) return;
+      lastProgress = progress;
+
       try {
-        morph.update(text);
-        // From an empty line Torph may animate only the text, with no container animation.
-        const animations = layer.getAnimations({subtree: true});
-        Promise.allSettled(animations.map(animation => animation.finished)).then(finish);
+        if (progress < 1 && !effects.length) buildEffects();
+        if (progress < 1 && !effects.length) {
+          disablePauseMotion();
+          return;
+        }
+        for (const {animation, duration, delay, stagger} of effects) {
+          const segmentProgress = clampProgress((progress - stagger) / (1 - wordStagger));
+          animation.currentTime = delay + duration * segmentProgress;
+        }
+        title.classList.toggle('is-morphing', progress < 1);
+        const captionProgress = clampProgress((progress - captionStart) / (1 - captionStart));
+        section.style.setProperty('--pause-caption-progress', captionProgress);
       } catch {
-        finish();
+        disablePauseMotion();
       }
-    }, {threshold: .15});
-    title.classList.add('is-morphing');
-    observer.observe(title);
+    }
+
+    function scheduleUpdate() {
+      if (!frame) frame = requestAnimationFrame(update);
+    }
+
+    const {signal} = listeners;
+    window.addEventListener('scroll', scheduleUpdate, {passive: true, signal});
+    window.addEventListener('resize', () => {
+      effects = [];
+      lastProgress = undefined;
+      scheduleUpdate();
+    }, {signal});
+    reducedMotion.addEventListener('change', scheduleUpdate, {signal});
+    update();
   } catch {
-    finish();
+    disablePauseMotion();
   }
 }
 

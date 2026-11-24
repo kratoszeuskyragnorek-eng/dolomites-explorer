@@ -486,15 +486,18 @@ html:not(.map-only) #explorer:fullscreen {
 .pause-title-overlay {
   position: absolute;
   inset: 0;
+  visibility: hidden;
   pointer-events: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .is-morphing .pause-title-copy { opacity: 0; }
-}
+  .pause-chapter .is-morphing .pause-title-copy { opacity: 0; }
+  .pause-chapter .is-morphing .pause-title-overlay { visibility: visible; }
 
-@media (prefers-reduced-motion: reduce) {
-  .pause-title-overlay { display: none; }
+  .pause-caption {
+    opacity: var(--pause-caption-progress, 1);
+    translate: 0 calc(18px * (1 - var(--pause-caption-progress, 1)));
+  }
 }
 
 .trail-chapter {
