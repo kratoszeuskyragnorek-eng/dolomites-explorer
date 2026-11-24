@@ -340,6 +340,8 @@
   align-content: start;
   gap: clamp(36px, 3.33vw, 48px);
   padding-top: clamp(75px, 9.58vw, 138px);
+  background: #fff;
+  color: #000;
 }
 
 .pause-chapter h2 {
