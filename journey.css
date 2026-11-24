@@ -172,6 +172,24 @@ html:not(.map-only).map-gated {
   line-height: 1.18;
 }
 
+/* Letter entrance based on Tobias Ahlin’s Moving Letters #2 (Sunny mornings). */
+@media (prefers-reduced-motion: no-preference) {
+  #journey-title .hero-title-word {
+    white-space: nowrap;
+  }
+
+  #journey-title .hero-title-word > span {
+    display: inline-block;
+    animation: hero-title-letter-in 950ms cubic-bezier(.19, 1, .22, 1) backwards;
+    animation-delay: calc(var(--hero-letter-index) * 70ms);
+  }
+}
+
+@keyframes hero-title-letter-in {
+  from { opacity: 0; transform: scale(4); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 .portal-copy p {
   margin: 25px 0 24px;
   font-size: clamp(1rem, 1.39vw, 1.25rem);

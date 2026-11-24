@@ -188,6 +188,29 @@ function reframePortal() {
   requestPortalFrame();
 }
 
+function animateHeroTitle() {
+  if (reducedMotion.matches || phase !== 'cover' || copy.inert) return;
+
+  const title = document.getElementById('journey-title');
+  let letterIndex = 0;
+  for (const line of [...title.childNodes]) {
+    if (line.nodeType !== Node.TEXT_NODE) continue;
+    const words = line.textContent.split(/(\s+)/u).map(word => {
+      if (!word.trim()) return word;
+      const group = document.createElement('span');
+      group.className = 'hero-title-word';
+      for (const character of word) {
+        const letter = document.createElement('span');
+        letter.textContent = character;
+        letter.style.setProperty('--hero-letter-index', letterIndex++);
+        group.append(letter);
+      }
+      return group;
+    });
+    line.replaceWith(...words);
+  }
+}
+
 function lockMap() {
   const mapPosition = window.scrollY + explorer.getBoundingClientRect().top;
   phase = 'map';
@@ -336,6 +359,7 @@ if (!mapOnly) {
   });
   stage.querySelectorAll('a[href="#explorer"]').forEach(link => link.addEventListener('click', enterThroughPortal));
   renderPortal();
+  animateHeroTitle();
 
   if ('IntersectionObserver' in window) {
     const observer = new IntersectionObserver(entries => {
