@@ -27,6 +27,7 @@ const markers=[];
 const projected=new THREE.Vector3();
 const homeTarget=new THREE.Vector3();
 const homeOffset=new THREE.Vector3(0,53,19);
+const placeViewOffset=new THREE.Vector3(-1.25,40.9,39.7).setLength(57);
 const fogColor=new THREE.Color(0xffffff);
 const terrainMarginKm=5;
 
@@ -41,7 +42,7 @@ $('place-close').addEventListener('click',()=>clearPlace());
 $('reset').addEventListener('click',resetView);
 $('top-view').addEventListener('click',()=>{
   if(!ready)return;
-  const distance=Math.min(95,Math.max(18,controls.getDistance()));
+  const distance=Math.max(18,controls.getDistance());
   moveCamera(controls.target.clone(),new THREE.Vector3(0,distance,.03));
   announce('Вид сверху');
 });
@@ -265,7 +266,8 @@ function selectPlace(place){
   }
   for(const marker of markers)marker.button.classList.toggle('selected',marker.place.id===selected);
   const target=geographicToWorld(place.lat,place.lon);
-  moveCamera(target,new THREE.Vector3(4,23,10));
+  const offset=placeViewOffset.clone().clampLength(0,controls.getDistance());
+  moveCamera(target,offset);
   announce(`Перелёт: ${place.name}`);
 }
 function clearPlace({slideOut=false}={}){
@@ -311,14 +313,15 @@ function moveCamera(target,offset,duration=1200){
   if(controls.autoRotate){controls.autoRotate=false;$('auto-rotate').checked=false;}
   // Flush damping so a completed flight cannot spring back to an earlier drag.
   controls.enableDamping=false;controls.update();controls.enableDamping=true;
-  flight={start:performance.now(),duration:reducedMotion?0:duration,fromPosition:camera.position.clone(),fromTarget:controls.target.clone(),toPosition:target.clone().add(offset),toTarget:target.clone()};
+  const toPosition=offset.clone().clampLength(controls.minDistance,controls.maxDistance).add(target);
+  flight={start:performance.now(),duration:reducedMotion?0:duration,fromPosition:camera.position.clone(),fromTarget:controls.target.clone(),toPosition,toTarget:target.clone()};
   controls.enabled=false;invalidate();
 }
 function resetView(){if(!ready)return;clearPlace();setSettingsOpen(false);moveCamera(homeTarget,homeOffset);announce('Общий вид Доломитов');}
 function zoom(factor){
   if(!ready)return;
-  const offset=camera.position.clone().sub(controls.target),length=THREE.MathUtils.clamp(offset.length()*factor,controls.minDistance,controls.maxDistance);
-  offset.setLength(length);moveCamera(controls.target.clone(),offset,450);
+  const offset=camera.position.clone().sub(controls.target).multiplyScalar(factor);
+  moveCamera(controls.target.clone(),offset,450);
 }
 function cancelFlight(){if(flight){flight=null;controls.enabled=true;}invalidate();}
 
@@ -433,7 +436,7 @@ export async function initialize(){
     controls=new OrbitControls(camera,renderer.domElement);
     controls.target.copy(homeTarget);controls.enableDamping=true;controls.dampingFactor=.075;
     controls.rotateSpeed=.55;controls.panSpeed=.7;controls.zoomSpeed=.8;
-    controls.minDistance=4;controls.maxDistance=135;
+    controls.minDistance=4;controls.maxDistance=68.6;
     controls.minPolarAngle=.015;controls.maxPolarAngle=Math.PI*.43;
     controls.screenSpacePanning=false;controls.zoomToCursor=true;
     controls.autoRotateSpeed=.32;
