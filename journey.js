@@ -410,16 +410,22 @@ async function preparePauseTitle() {
   const section = title.closest('.pause-chapter');
   const phrases = Array.from(title.querySelector('.pause-title-copy').children);
   const clampProgress = value => Math.min(1, Math.max(0, value));
-  const wordStagger = .28;
-  const captionStart = .3;
+  const morphDuration = 1000;
+  const captionStart = .67;
   const overlay = document.createElement('span');
   overlay.className = 'pause-title-overlay';
   overlay.setAttribute('aria-hidden', 'true');
-  const layer = document.createElement('span');
-  overlay.append(layer);
-
   const listeners = new AbortController();
-  let morph;
+  const stages = [];
+  let currentStage;
+
+  function clearStages() {
+    for (const {morph} of stages) morph.destroy();
+    stages.length = 0;
+    currentStage = undefined;
+    overlay.replaceChildren();
+  }
+
   function restoreTitle() {
     title.classList.remove('is-morphing');
     section.style.removeProperty('--pause-caption-progress');
@@ -428,42 +434,58 @@ async function preparePauseTitle() {
   function disablePauseMotion() {
     listeners.abort();
     restoreTitle();
+    clearStages();
     overlay.remove();
-    morph?.destroy();
   }
 
   try {
     const [{TextMorph}] = await Promise.all([import('./vendor/torph-0.1.4.js'), document.fonts.ready]);
     title.append(overlay);
 
-    let effects = [];
+    let needsLayout = true;
     let lastProgress;
     let frame = 0;
 
-    function buildEffects() {
-      morph?.destroy();
-      layer.replaceChildren();
-      morph = new TextMorph({element: layer, duration: 1000, locale: 'ru'});
-      let text = phrases[0].textContent;
-      for (let index = 1; index < phrases.length; index++) {
-        const inSameLine = phrases[index].offsetTop === phrases[index - 1].offsetTop;
-        text += (inSameLine ? ' ' : '\n') + phrases[index].textContent;
+    function buildStages() {
+      clearStages();
+      let text = '';
+      for (const [index, phrase] of phrases.entries()) {
+        // Torph uses the first update to set the starting text without animating.
+        const previousText = text || '\u200B';
+        if (index > 0) text += phrase.offsetTop === phrases[index - 1].offsetTop ? ' ' : '\n';
+        text += phrase.textContent;
+
+        const layer = document.createElement('span');
+        layer.className = 'pause-title-stage';
+        overlay.append(layer);
+        const morph = new TextMorph({element: layer, duration: morphDuration, ease: 'linear', locale: 'ru'});
+        const stage = {layer, morph, animations: []};
+        stages.push(stage);
+
+        morph.update(previousText);
+        morph.update(text);
+        stage.animations = layer.getAnimations({subtree: true});
+        for (const animation of stage.animations) {
+          animation.pause();
+          animation.currentTime = 0;
+        }
       }
+      needsLayout = false;
+    }
 
-      // Torph renders the first value without animating. The zero-width glyph primes its empty state.
-      morph.update('\u200B');
-      morph.update(text);
-      const animations = layer.getAnimations({subtree: true});
-      const words = [...new Set(animations.map(({effect}) => effect.target))]
-        .filter(target => target !== layer && target.textContent.trim());
-
-      effects = animations.map(animation => {
-        animation.pause();
-        const {duration, delay} = animation.effect.getTiming();
-        const wordIndex = Math.max(0, words.indexOf(animation.effect.target));
-        const stagger = wordStagger * wordIndex / Math.max(1, words.length - 1);
-        return {animation, duration, delay, stagger};
-      });
+    function seekTitle(progress) {
+      if (needsLayout) buildStages();
+      // Each stage is the actual Torph transition between two cumulative phrases.
+      const position = progress * stages.length;
+      const index = Math.floor(position);
+      const stage = stages[index];
+      if (stage !== currentStage) {
+        currentStage?.layer.classList.remove('is-current');
+        stage.layer.classList.add('is-current');
+        currentStage = stage;
+      }
+      const time = morphDuration * clampProgress((position - index) / .88);
+      for (const animation of stage.animations) animation.currentTime = time;
     }
 
     function update() {
@@ -474,22 +496,14 @@ async function preparePauseTitle() {
         return;
       }
 
-      const start = innerHeight * .85;
-      const end = innerHeight * .3;
+      const start = innerHeight * .9;
+      const end = innerHeight * .25;
       const progress = clampProgress((start - title.getBoundingClientRect().top) / (start - end));
       if (progress === lastProgress) return;
       lastProgress = progress;
 
       try {
-        if (progress < 1 && !effects.length) buildEffects();
-        if (progress < 1 && !effects.length) {
-          disablePauseMotion();
-          return;
-        }
-        for (const {animation, duration, delay, stagger} of effects) {
-          const segmentProgress = clampProgress((progress - stagger) / (1 - wordStagger));
-          animation.currentTime = delay + duration * segmentProgress;
-        }
+        if (progress < 1) seekTitle(progress);
         title.classList.toggle('is-morphing', progress < 1);
         const captionProgress = clampProgress((progress - captionStart) / (1 - captionStart));
         section.style.setProperty('--pause-caption-progress', captionProgress);
@@ -505,7 +519,7 @@ async function preparePauseTitle() {
     const {signal} = listeners;
     window.addEventListener('scroll', scheduleUpdate, {passive: true, signal});
     window.addEventListener('resize', () => {
-      effects = [];
+      needsLayout = true;
       lastProgress = undefined;
       scheduleUpdate();
     }, {signal});

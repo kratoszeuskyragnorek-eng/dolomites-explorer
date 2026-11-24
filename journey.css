@@ -486,9 +486,19 @@ html:not(.map-only) #explorer:fullscreen {
 .pause-title-overlay {
   position: absolute;
   inset: 0;
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  place-items: center;
   visibility: hidden;
   pointer-events: none;
 }
+
+.pause-title-stage {
+  grid-area: 1 / 1;
+  visibility: hidden;
+}
+
+.pause-title-stage.is-current { visibility: inherit; }
 
 @media (prefers-reduced-motion: no-preference) {
   .pause-chapter .is-morphing .pause-title-copy { opacity: 0; }
