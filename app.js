@@ -6,6 +6,7 @@ const $ = id => document.getElementById(id);
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const touch = matchMedia('(pointer: coarse)').matches;
 const mapOnly = document.documentElement.classList.contains('map-only');
+const placeCard = $('place-card');
 const places = [
   {id:'sella',name:'Sella',region:'В САМОМ СЕРДЦЕ ДОЛОМИТОВ',lat:46.5088861,lon:11.8282806,description:'Мощный скальный массив между долинами Валь-Гардена, Валь-Бадия и Валь-ди-Фасса.'},
   {id:'marmolada',name:'Marmolada',region:'КОРОЛЕВА ДОЛОМИТОВ',lat:46.4344,lon:11.8496056,description:'Самый высокий массив Доломитов. На его северной стороне расположен ледник Мармолада.'},
@@ -18,6 +19,7 @@ const places = [
 let renderer, scene, camera, controls, terrain, geometry, material, skirts;
 let meta, heights, uniforms, snow;
 let ready=false, presented=false, verticalScale=1, currentLayer='style', selected=null, flight=null;
+let placeCardEntrance;
 let frame=0, previousTime=0, demandFrames=0, disposed=false;
 const textures=new Map();
 const markers=[];
@@ -205,16 +207,35 @@ function setupPlaces(){
 }
 function selectPlace(place){
   if(!ready)return;
+  const placeChanged = selected !== place.id;
   setSettingsOpen(false);selected=place.id;
   $('place-region').textContent=place.region;$('place-title').textContent=place.name;$('place-description').textContent=place.description;
   $('place-coordinate').textContent=`${place.lat.toFixed(4)}° N · ${place.lon.toFixed(4)}° E`;
-  $('place-card').hidden=false;
+  placeCard.hidden=false;
+  if(placeChanged && !reducedMotion){
+    placeCardEntrance?.cancel();
+    // Match the zoom-in preset and ease-out-back timing of the AOS demo.
+    placeCardEntrance = placeCard.animate([
+      {opacity:0, transform:'scale(.6)'},
+      {opacity:1, transform:'scale(1)'}
+    ], {
+      duration:1000,
+      easing:'cubic-bezier(.175, .885, .32, 1.275)',
+      fill:'backwards'
+    });
+  }
   for(const marker of markers)marker.button.classList.toggle('selected',marker.place.id===selected);
   const target=geographicToWorld(place.lat,place.lon);
   moveCamera(target,new THREE.Vector3(4,23,10));
   announce(`Перелёт: ${place.name}`);
 }
-function clearPlace(){selected=null;$('place-card').hidden=true;for(const marker of markers)marker.button.classList.remove('selected');}
+function clearPlace(){
+  placeCardEntrance?.cancel();
+  placeCardEntrance=null;
+  selected=null;
+  placeCard.hidden=true;
+  for(const marker of markers)marker.button.classList.remove('selected');
+}
 function moveCamera(target,offset,duration=1200){
   if(!ready)return;
   snow?.leave();
