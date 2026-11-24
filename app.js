@@ -37,7 +37,7 @@ function setSettingsOpen(open){
 }
 
 $('settings-toggle').addEventListener('click',()=>setSettingsOpen($('settings').hidden));
-$('place-close').addEventListener('click',clearPlace);
+$('place-close').addEventListener('click',()=>clearPlace());
 $('reset').addEventListener('click',resetView);
 $('top-view').addEventListener('click',()=>{
   if(!ready)return;
@@ -268,8 +268,9 @@ function selectPlace(place){
   moveCamera(target,new THREE.Vector3(4,23,10));
   announce(`Перелёт: ${place.name}`);
 }
-function clearPlace(){
-  removeOutgoingPlaceCard();
+function clearPlace({slideOut=false}={}){
+  if(slideOut && !reducedMotion)sendPlaceCardLeft();
+  else removeOutgoingPlaceCard();
   placeCardEntrance?.cancel();
   placeCardEntrance=null;
   selected=null;
@@ -288,7 +289,7 @@ function bindMapPointerEvents(canvas){
     if(press && !isTap(event))press=null;
   });
   canvas.addEventListener('pointerup',event=>{
-    if(isTap(event))clearPlace();
+    if(isTap(event) && selected!==null)clearPlace({slideOut:true});
     press=null;
   });
   canvas.addEventListener('pointercancel',()=>{press=null;});
