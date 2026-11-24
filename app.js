@@ -19,7 +19,7 @@ const places = [
 let renderer, scene, camera, controls, terrain, geometry, material, skirts;
 let meta, heights, uniforms, snow;
 let ready=false, presented=false, verticalScale=1, currentLayer='style', selected=null, flight=null;
-let placeCardEntrance;
+let placeCardEntrance, placeCardExit;
 let frame=0, previousTime=0, demandFrames=0, disposed=false;
 const textures=new Map();
 const markers=[];
@@ -205,19 +205,57 @@ function setupPlaces(){
     const button=document.createElement('button');button.type='button';button.className='marker';button.dataset.place=place.id;button.setAttribute('aria-label',`Перелететь к ${place.name}`);button.innerHTML=`<span class="marker-dot"></span><span class="marker-name">${place.name}</span>`;button.addEventListener('click',()=>selectPlace(place));$('markers').append(button);markers.push({place,button});
   }
 }
+
+function removeOutgoingPlaceCard(){
+  if(!placeCardExit)return;
+  placeCardExit.effect.target.remove();
+  placeCardExit.cancel();
+  placeCardExit=null;
+}
+
+function sendPlaceCardLeft(){
+  removeOutgoingPlaceCard();
+  const {opacity, transform} = getComputedStyle(placeCard);
+  // Keep the old content below the active card while both animations play.
+  const outgoing = placeCard.cloneNode(true);
+  outgoing.removeAttribute('id');
+  outgoing.removeAttribute('aria-live');
+  outgoing.setAttribute('aria-hidden','true');
+  outgoing.inert=true;
+  for(const child of outgoing.querySelectorAll('[id]'))child.removeAttribute('id');
+  placeCard.before(outgoing);
+  outgoing.scrollTop=placeCard.scrollTop;
+
+  const exit = outgoing.animate([
+    {opacity, transform},
+    {opacity:0, transform:'translateX(calc(-100% - 32px))'}
+  ], {
+    duration:560,
+    easing:'cubic-bezier(.4, 0, .2, 1)',
+    fill:'both'
+  });
+  placeCardExit=exit;
+  exit.onfinish=()=>{
+    if(placeCardExit===exit)removeOutgoingPlaceCard();
+  };
+}
+
 function selectPlace(place){
   if(!ready)return;
   const placeChanged = selected !== place.id;
+  const switchingPlace = placeChanged && selected !== null;
+  if(switchingPlace && !reducedMotion)sendPlaceCardLeft();
   setSettingsOpen(false);selected=place.id;
   $('place-region').textContent=place.region;$('place-title').textContent=place.name;$('place-description').textContent=place.description;
   $('place-coordinate').textContent=`${place.lat.toFixed(4)}° N · ${place.lon.toFixed(4)}° E`;
   placeCard.hidden=false;
   if(placeChanged && !reducedMotion){
     placeCardEntrance?.cancel();
-    // Match the zoom-in preset and ease-out-back timing of the AOS demo.
+    // Use AOS zoom-in on open and zoom-out-left when replacing a card.
+    const entranceTransform = switchingPlace ? 'translateX(-100px) scale(1.2)' : 'scale(.6)';
     placeCardEntrance = placeCard.animate([
-      {opacity:0, transform:'scale(.6)'},
-      {opacity:1, transform:'scale(1)'}
+      {opacity:0, transform:entranceTransform},
+      {opacity:1, transform:'none'}
     ], {
       duration:1000,
       easing:'cubic-bezier(.175, .885, .32, 1.275)',
@@ -230,6 +268,7 @@ function selectPlace(place){
   announce(`Перелёт: ${place.name}`);
 }
 function clearPlace(){
+  removeOutgoingPlaceCard();
   placeCardEntrance?.cancel();
   placeCardEntrance=null;
   selected=null;
