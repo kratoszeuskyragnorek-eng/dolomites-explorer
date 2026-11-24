@@ -281,6 +281,28 @@ html:not(.map-only) #explorer:fullscreen {
   margin-top: 0;
 }
 
+:where(html:not(.map-only)) #explorer:not(:fullscreen)::after {
+  content: '';
+  position: absolute;
+  z-index: 4;
+  inset: auto 0 0;
+  height: clamp(112px, 18dvh, 200px);
+  pointer-events: none;
+  background: rgb(255 255 255 / 88%);
+  backdrop-filter: blur(14px);
+  mask-image: linear-gradient(to top, #000 14%, #000b 42%, #0004 70%, transparent);
+  opacity: 0;
+}
+
+#explorer:has(> .map-continue:not([hidden]))::after { opacity: .84; }
+#explorer:has(> .map-continue:not([hidden]):is(:hover, :focus-visible))::after { opacity: 1; }
+
+@media (prefers-reduced-motion: no-preference) {
+  :where(html:not(.map-only)) #explorer:not(:fullscreen)::after {
+    transition: opacity 620ms cubic-bezier(.22,.61,.36,1);
+  }
+}
+
 .map-continue {
   position: absolute;
   z-index: 8;
