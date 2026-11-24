@@ -50,7 +50,6 @@ function prepareLoadingMessage() {
     letter.style.setProperty('--loading-letter-index', index + 1);
     return letter;
   });
-  loadingMessage.style.setProperty('--loading-letter-count', letters.length);
   loadingMessage.replaceChildren(...letters);
 }
 
