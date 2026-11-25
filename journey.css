@@ -335,6 +335,38 @@ html:not(.map-only) #explorer:fullscreen {
   to { opacity: 1; transform: translateX(-50%); }
 }
 
+.map-home {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  left: max(clamp(16px, 1.4vw, 28px), env(safe-area-inset-left));
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 3px;
+  color: #29434a;
+  background: rgb(255 255 255 / 82%);
+  pointer-events: auto;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+
+.map-home:hover {
+  background: #fff;
+  color: #152d33;
+}
+
+.map-home svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#explorer[data-loading] .map-home { visibility: hidden; }
+
 .brand .map-title {
   margin: 6px 0 7px;
   font: 400 46px/1 var(--font-heading);

@@ -578,9 +578,15 @@ if (!mapOnly) {
   window.addEventListener('touchend', endSwipe, {capture: true, passive: true});
   window.addEventListener('touchcancel', () => { swipe = null; }, {capture: true, passive: true});
   window.addEventListener('keydown', handleKeys);
-  document.addEventListener('click', event => {
+  document.addEventListener('click', async event => {
     const link = event.target.closest?.('a[href^="#"]');
     if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (link.id === 'map-home') {
+      event.preventDefault();
+      if (document.fullscreenElement) await document.exitFullscreen().catch(() => {});
+      if (phase === 'map' && !document.fullscreenElement) leaveMap(-1);
+      return;
+    }
     const destination = document.getElementById(link.hash.slice(1));
     if (story.contains(destination)) phase = 'story';
     else if (destination === portal || (destination === explorer && phase === 'story')) phase = 'cover';
