@@ -9,8 +9,8 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%2329382b'/%3E%3Cpath d='M6 29 17 10l6 12 4-7 8 14' fill='none' stroke='%23f5f2df' stroke-width='2'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="./assets/story/fonts/fonts.css?v=forum-jost">
   <link rel="stylesheet" href="./styles.css?v=forum-jost">
-  <link rel="stylesheet" href="./journey.css?v=map-home-link">
-  <link rel="stylesheet" href="./make-it.css?v=story-scroll-reveals">
+  <link rel="stylesheet" href="./journey.css?v=unified-route-landscape">
+  <link rel="stylesheet" href="./make-it.css?v=unified-route-landscape">
   <script>if(new URLSearchParams(location.search).get('view')==='map')document.documentElement.classList.add('map-only');</script>
   <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js"}}</script>
 </head>
@@ -198,59 +198,52 @@
         </div>
       </section>
 
-      <section class="pause-chapter" aria-labelledby="pause-title">
+      <section id="trail-rules" class="pause-chapter" aria-labelledby="pause-title">
         <h2 id="pause-title">
-          <span class="pause-title-copy"><span>Замечать перемены.</span> <span>Понимать горы.</span> <span>Идти бережно.</span></span>
+          <span class="pause-title-copy"><span>Держись</span> <span>размеченной тропы</span></span>
         </h2>
-        <div class="pause-caption">
-          <p>Лёд, вода и породы меняют ландшафт.<br>На тропе эти процессы становятся видимыми.</p>
-          <small>Выбери, что исследовать дальше.</small>
-        </div>
+        <p>Так ты сохраняешь растения, уменьшаешь эрозию и не тревожишь животных.</p>
       </section>
 
-      <section id="trail-rules" class="chapter trail-chapter" aria-labelledby="trail-title" data-node-id="140:630">
-        <img class="chapter-image" src="./assets/story/trail-terrain.webp" alt="" width="1728" height="650" loading="lazy" decoding="async">
-        <svg class="trail-outline" viewBox="0 0 1440 640" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-          <defs>
-            <linearGradient id="trail-stroke" x1="773" y1="227" x2="-664.5" y2="207" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#ffbd2f"/>
-              <stop offset="1" stop-color="#99711c" stop-opacity="0"/>
-            </linearGradient>
-          </defs>
-          <path d="M-70 140C130 90 170 300 320 205C470 110 540 60 670 210C800 360 800 310 1020 180C1240 50 1200 130 1510 240" pathLength="1" fill="none" stroke="url(#trail-stroke)" stroke-width="22" stroke-linecap="round"/>
-        </svg>
-        <div class="chapter-content">
-          <h2 id="trail-title" data-reveal>Держись<br>размеченной тропы</h2>
-          <p data-reveal>Так ты сохраняешь растения, уменьшаешь эрозию и не тревожишь животных.</p>
+      <div class="route-landscape">
+        <img class="route-landscape-image" src="./assets/story/dolomites-route-terrain.webp" alt="" width="2160" height="3014" loading="lazy" decoding="async">
+        <div class="trail-chapter" aria-hidden="true">
+          <svg class="trail-outline" viewBox="0 -127 1440 476" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="trail-stroke" x1="773" y1="227" x2="-664.5" y2="207" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#ffbd2f"/>
+                <stop offset="1" stop-color="#99711c" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M-70 140C130 90 170 300 320 205C470 110 540 60 670 210C800 360 800 310 1020 180C1240 50 1200 130 1510 240" pathLength="1" fill="none" stroke="url(#trail-stroke)" stroke-width="22" stroke-linecap="round"/>
+          </svg>
         </div>
-      </section>
 
-      <section id="guides" class="chapter guides-chapter" aria-labelledby="guides-title" data-node-id="140:643">
-        <img class="chapter-image" src="./assets/story/route-background.png" alt="" loading="lazy" decoding="async">
-        <img class="guides-edge" src="./assets/story/figma-form-edge.svg" alt="" width="1440" height="2167" decoding="async">
-        <div class="chapter-content">
-          <h2 id="guides-title" data-reveal>Горы меняются.<br>Выбирай свой маршрут.</h2>
-          <form class="route-picker" id="route-picker" aria-label="Подбор маршрута" data-reveal>
-            <div class="route-fields">
-              <label>Сезон<select name="season"><option value="">Любой</option><option value="summer">Лето</option><option value="winter">Зима</option></select></label>
-              <label>Длительность<select name="duration"><option value="">На один день</option><option value="short">До 2 часов</option><option value="half">От 2 до 4 часов</option><option value="long">Больше 4 часов</option></select></label>
-              <label class="wide-field">Сложность<select name="difficulty"><option value="">Подобрать по возможностям</option><option value="easy">Лёгкая</option><option value="medium">Средняя</option><option value="hard">Высокая</option></select></label>
-              <label class="wide-field">Набор высоты<select name="ascent"><option value="">Выбрать диапазон</option><option value="low">До 250 м</option><option value="mid">250–600 м</option><option value="high">Больше 600 м</option></select></label>
-              <label class="wide-field">Формат<select name="format"><option value="">Самостоятельно / с гидом</option><option value="self">Самостоятельно</option><option value="guide">С гидом</option></select></label>
-              <label class="wide-field">Точка старта<select name="start"><option value="">Корвара / Кольфоско</option><option value="corvara">Корвара</option><option value="colfosco">Кольфоско</option><option value="valparola">Перевал Вальпарола</option></select></label>
-              <div class="route-form-links">
-                <a href="https://www.altabadia.org/en/dolomites/mountain-guides-alta-badia-dolomites">Найти гида <span aria-hidden="true">↗️</span></a>
-                <a href="#trail-rules">Правила похода <span aria-hidden="true">↗️</span></a>
+        <section id="guides" class="chapter guides-chapter" aria-labelledby="guides-title" data-node-id="140:643">
+          <div class="chapter-content">
+            <h2 id="guides-title" data-reveal>Горы меняются.<br>Выбирай свой маршрут.</h2>
+            <form class="route-picker" id="route-picker" aria-label="Подбор маршрута" data-reveal>
+              <div class="route-fields">
+                <label>Сезон<select name="season"><option value="">Любой</option><option value="summer">Лето</option><option value="winter">Зима</option></select></label>
+                <label>Длительность<select name="duration"><option value="">На один день</option><option value="short">До 2 часов</option><option value="half">От 2 до 4 часов</option><option value="long">Больше 4 часов</option></select></label>
+                <label class="wide-field">Сложность<select name="difficulty"><option value="">Подобрать по возможностям</option><option value="easy">Лёгкая</option><option value="medium">Средняя</option><option value="hard">Высокая</option></select></label>
+                <label class="wide-field">Набор высоты<select name="ascent"><option value="">Выбрать диапазон</option><option value="low">До 250 м</option><option value="mid">250–600 м</option><option value="high">Больше 600 м</option></select></label>
+                <label class="wide-field">Формат<select name="format"><option value="">Самостоятельно / с гидом</option><option value="self">Самостоятельно</option><option value="guide">С гидом</option></select></label>
+                <label class="wide-field">Точка старта<select name="start"><option value="">Корвара / Кольфоско</option><option value="corvara">Корвара</option><option value="colfosco">Кольфоско</option><option value="valparola">Перевал Вальпарола</option></select></label>
+                <div class="route-form-links">
+                  <a href="https://www.altabadia.org/en/dolomites/mountain-guides-alta-badia-dolomites">Найти гида <span aria-hidden="true">↗️</span></a>
+                  <a href="#trail-rules">Правила похода <span aria-hidden="true">↗️</span></a>
+                </div>
               </div>
-            </div>
-            <div class="route-result">
-              <p class="route-result-title">Твой следующий<br>маршрут</p>
-              <div id="route-answer" aria-live="polite"></div>
-              <button type="submit">Найти маршрут</button>
-            </div>
-          </form>
-        </div>
-      </section>
+              <div class="route-result">
+                <p class="route-result-title">Твой следующий<br>маршрут</p>
+                <div id="route-answer" aria-live="polite"></div>
+                <button type="submit">Найти маршрут</button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </div>
 
       <footer class="journey-footer" data-node-id="140:686">
         <div class="footer-frame">
@@ -289,7 +282,7 @@
     </div>
   </main>
 
-  <script type="module" src="./journey.js?v=map-home-link"></script>
+  <script type="module" src="./journey.js?v=unified-route-landscape"></script>
   <script type="module" src="./route-picker.js?v=route-gallery-accordion"></script>
 </body>
 </html>

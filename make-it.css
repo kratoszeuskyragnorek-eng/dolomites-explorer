@@ -57,12 +57,12 @@
   padding-block: clamp(56px, 6.458vw, 93px) 48px;
 }
 
-.relief-chapter h2 {
+.relief-chapter h2, .pause-chapter h2 {
   font-size: clamp(2.25rem, 5.75vw, 5.174rem);
   line-height: .81;
 }
 
-.relief-chapter p {
+.relief-chapter p, .pause-chapter p {
   max-width: 600px;
   margin: 0;
   font-size: clamp(1rem, 1.389vw, 1.25rem);
@@ -318,61 +318,20 @@
 }
 
 .pause-chapter {
+  min-height: clamp(290px, calc(100vw * 512 / 1440), 512px);
   align-content: start;
-  gap: clamp(36px, 3.33vw, 48px);
-  padding-top: clamp(75px, 9.58vw, 138px);
+  gap: clamp(22px, 2.361vw, 34px);
+  padding-block: clamp(96px, 17.986vw, 259px) 24px;
   background: #fff;
   color: #000;
 }
 
 .pause-chapter h2 {
-  font-size: clamp(1.8rem, 3.33vw, 3rem);
-  line-height: 1.333;
+  letter-spacing: -.01em;
 }
 
 .pause-chapter p {
-  margin: 0 0 16px;
-  line-height: 1.6;
-}
-
-.pause-chapter small { font-size: 1rem; }
-
-.trail-chapter .chapter-content {
-  isolation: isolate;
-  width: min(100%, 560px);
-}
-
-.trail-chapter h2 {
-  font-size: clamp(1.5rem, 1.94vw, 1.75rem);
-  line-height: 1.43;
-}
-
-.guides-chapter {
-  min-height: auto;
-  background: #fff;
-}
-
-.guides-chapter .chapter-image {
-  inset: 0 auto auto -17.1%;
-  width: 134.2%;
-  height: 100%;
-}
-
-.guides-chapter::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(#ffffff85 37.267%, #ffffff1f 51.068%);
-}
-
-.guides-edge {
-  position: absolute;
-  top: -4.375vw;
-  left: 0;
-  z-index: -1;
-  width: 100%;
-  height: auto;
+  text-wrap: balance;
 }
 
 .guides-chapter .chapter-content {
@@ -380,12 +339,17 @@
   justify-items: center;
   gap: clamp(48px, 6.46vw, 93px);
   padding: clamp(100px, 14.44vw, 208px) 5vw clamp(82px, 11.875vw, 171px);
-  background: none;
+}
+
+@media (min-width: 760px) {
+  .guides-chapter .chapter-content {
+    padding-inline-end: calc(5vw + min(3.611vw, 52px));
+  }
 }
 
 .guides-chapter h2 {
   max-width: 856px;
-  color: #1f1f1f;
+  color: #fff;
   font-size: clamp(1.9rem, 3.89vw, 3.5rem);
   line-height: 1.285;
   letter-spacing: -.01em;
@@ -465,7 +429,8 @@
   grid-template-rows: auto 1fr auto;
   gap: clamp(12px, 2.804cqw, 24px);
   padding: clamp(20px, 4.673cqw, 40px) clamp(8px, 1.869cqw, 16px) clamp(16px, 3.738cqw, 32px);
-  background: #333333cf;
+  background: rgb(28 28 28 / 65%);
+  backdrop-filter: blur(14.5px);
   color: #fff;
   text-align: center;
 }

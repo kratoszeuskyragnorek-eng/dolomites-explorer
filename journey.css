@@ -465,7 +465,7 @@ html:not(.map-only) #explorer:fullscreen {
   font-size: clamp(1.8rem, 3.4vw, 3.1rem);
 }
 
-.gallery-intro, .pause-chapter p, .trail-chapter p {
+.gallery-intro, .pause-chapter p {
   font-size: clamp(1rem, 1.35vw, 1.25rem);
   line-height: 1.5;
 }
@@ -536,8 +536,7 @@ html:not(.map-only) #explorer:fullscreen {
 .pause-chapter h2 { position: relative; }
 
 .pause-title-copy { display: block; }
-.pause-title-copy > span { display: inline-block; }
-.pause-title-copy > span:last-child { display: block; }
+.pause-title-copy > span { display: block; }
 
 .pause-title-overlay {
   position: absolute;
@@ -561,39 +560,35 @@ html:not(.map-only) #explorer:fullscreen {
   .pause-chapter .is-morphing .pause-title-overlay { visibility: visible; }
 }
 
-.trail-chapter {
-  min-height: clamp(320px, 32vw, 510px);
-  background: #242321;
-  align-items: end;
+.route-landscape {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  display: grid;
+  grid-template-rows: minmax(0, 476fr) minmax(auto, 1533fr);
+  min-height: calc(100vw * 2009 / 1440);
+  background: #fff;
 }
 
-.trail-chapter .chapter-content {
-  width: min(100%, 560px);
-  padding-block: 0 clamp(26px, 4.25vw, 68px);
-}
-
-.trail-chapter .chapter-image {
-  object-position: center;
-  filter: grayscale(1) brightness(.55) contrast(1.15);
-}
-
-.trail-chapter::before,
-.trail-outline {
+.route-landscape-image {
   position: absolute;
   inset: 0;
   z-index: -1;
-  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.trail-chapter::before {
-  content: "";
-  background: linear-gradient(90deg, rgb(13 12 11 / 69%), transparent 63%),
-    linear-gradient(0deg, rgb(13 12 11 / 22%), transparent 58%);
+.trail-chapter {
+  position: relative;
 }
 
 .trail-outline {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
+  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -603,29 +598,10 @@ html:not(.map-only) #explorer:fullscreen {
   }
 }
 
-.trail-chapter h2 {
-  font-size: clamp(1.8rem, 3.1vw, 3rem);
-}
-
-.trail-chapter p {
-  max-width: 33ch;
-  margin: 12px 0 0;
-}
-
 .guides-chapter {
-  min-height: clamp(490px, 59vw, 870px);
-  color: #242424;
-  background: #e0d8cb;
+  min-height: auto;
   text-align: center;
   align-items: start;
-}
-
-.guides-chapter .chapter-content {
-  display: grid;
-  gap: 25px;
-  justify-items: center;
-  background: linear-gradient(#fff, rgb(255 255 255 / 88%) 60%, transparent);
-  padding-bottom: 110px;
 }
 
 .journey-footer {
