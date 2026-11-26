@@ -10,8 +10,17 @@
   <link rel="stylesheet" href="./assets/story/fonts/fonts.css?v=forum-jost">
   <link rel="stylesheet" href="./styles.css?v=graphite-map-controls">
   <link rel="stylesheet" href="./journey.css?v=shared-story-reveal">
-  <link rel="stylesheet" href="./make-it.css?v=smooth-route-gallery">
-  <script>if(new URLSearchParams(location.search).get('view')==='map')document.documentElement.classList.add('map-only');</script>
+  <link rel="stylesheet" href="./make-it.css?v=gallery-first-paint">
+  <script>
+    if (new URLSearchParams(location.search).get('view') === 'map') {
+      document.documentElement.classList.add('map-only');
+    } else {
+      document.documentElement.classList.add('gallery-awaiting-reveal');
+      window.addEventListener('load', () => {
+        document.documentElement.classList.remove('gallery-awaiting-reveal');
+      }, {once: true});
+    }
+  </script>
   <script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/controls/OrbitControls.js":"./vendor/OrbitControls.js"}}</script>
 </head>
 <body>
