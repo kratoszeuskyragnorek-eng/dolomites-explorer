@@ -21,6 +21,7 @@ const interpolate = (from, to, amount) => from + (to - from) * amount;
 const minimumLoadingMs = 1800;
 const loadingColorTransitionMs = 2000;
 const loadingFadeMs = 900;
+const mapReturnViewportRatio = .20;
 const continueHoverStart = .9;
 const continueScrollWindowMs = 650;
 const continueScrollThreshold = 660;
@@ -187,8 +188,9 @@ let lastProgress = -1;
 function renderPortal() {
   renderFrame = 0;
   let mapTop = explorer.getBoundingClientRect().top;
+  const returnDistance = pageScroll ? 1 : explorer.clientHeight * mapReturnViewportRatio;
   const approachingFromStory = phase === 'story' && window.scrollY < previousScroll &&
-    mapTop >= -explorer.clientHeight * .20;
+    mapTop >= -returnDistance;
   if ((phase === 'cover' && mapTop <= 1) || approachingFromStory) {
     lockMap();
     mapTop = 0;
@@ -421,6 +423,27 @@ function cancelPageInertia() {
   pageScroll.start();
 }
 
+function filterPageScroll(input) {
+  const {event, deltaX, deltaY} = input;
+  if ((phase !== 'cover' && phase !== 'story') || entryFrame || event.defaultPrevented) return false;
+  if (event.type !== 'wheel') return true;
+  if (!event.cancelable || event.shiftKey || event.metaKey || Math.abs(deltaX) > Math.abs(deltaY)) return false;
+  if (event.ctrlKey || deltaY === 0) return true;
+
+  const fromCover = phase === 'cover';
+  if (fromCover ? deltaY < 0 : deltaY > 0) return true;
+
+  const mapPosition = Math.round(window.scrollY + explorer.getBoundingClientRect().top);
+  const target = pageScroll.targetScroll;
+  const next = target + deltaY;
+  const returnZone = mapPosition + explorer.clientHeight * mapReturnViewportRatio;
+  if (fromCover ? next >= mapPosition : next <= returnZone) {
+    // Let Lenis handle the wheel event even if it is already easing toward this point.
+    input.deltaY = mapPosition - target || Math.sign(deltaY) * Number.EPSILON;
+  }
+  return true;
+}
+
 function syncPageScroll() {
   if (reducedMotion.matches) {
     cancelAnimationFrame(pageScrollFrame);
@@ -435,9 +458,7 @@ function syncPageScroll() {
     allowNestedScroll: true,
     stopInertiaOnNavigate: true,
     prevent: node => Boolean(node.closest?.('dialog, [data-native-scroll], video, input, textarea, select, [contenteditable]')),
-    virtualScroll: ({event, deltaX, deltaY}) =>
-      (phase === 'cover' || phase === 'story') && !entryFrame && !event.defaultPrevented &&
-      (event.type !== 'wheel' || (event.cancelable && !event.shiftKey && !event.metaKey && Math.abs(deltaY) >= Math.abs(deltaX)))
+    virtualScroll: filterPageScroll
   });
   pageScroll.on('scroll', () => {
     if (pageScroll.isScrolling !== 'smooth') return;
