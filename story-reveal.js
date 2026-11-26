@@ -1,4 +1,4 @@
-const copySelector = 'h2:not(#pause-title), h3, p:not(.footer-wordmark), small, a, button, .gallery-tag';
+const copySelector = 'h2, h3, p:not(.footer-wordmark), small, a, button, .gallery-tag';
 const controlSelector = 'a, button, small, .gallery-tag, .route-fields label';
 const mediaSelector = '.chapter-image, .footer-photo';
 const blockSelector = 'li[data-reveal], figure[data-reveal], form[data-reveal], .route-fields label, .footer-columns nav, .footer-wordmark';

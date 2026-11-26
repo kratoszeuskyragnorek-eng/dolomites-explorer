@@ -1,4 +1,4 @@
-import { prepareStoryReveals } from './story-reveal.js?v=1';
+import { prepareStoryReveals } from './story-reveal.js?v=2';
 
 const portal = document.querySelector('.portal');
 const stage = portal.querySelector('.portal-stage');
@@ -430,132 +430,6 @@ function enterThroughPortal(event) {
   entryFrame = requestAnimationFrame(step);
 }
 
-async function preparePauseTitle() {
-  const title = document.getElementById('pause-title');
-  if (!title || typeof title.animate !== 'function' || typeof title.getAnimations !== 'function') return;
-  if (reducedMotion.matches) {
-    reducedMotion.addEventListener('change', preparePauseTitle, {once: true});
-    return;
-  }
-
-  const phrases = Array.from(title.querySelector('.pause-title-copy').children);
-  const clampProgress = value => Math.min(1, Math.max(0, value));
-  const morphDuration = 1000;
-  const overlay = document.createElement('span');
-  overlay.className = 'pause-title-overlay';
-  overlay.setAttribute('aria-hidden', 'true');
-  const listeners = new AbortController();
-  const stages = [];
-  let currentStage;
-
-  function clearStages() {
-    for (const {morph} of stages) morph.destroy();
-    stages.length = 0;
-    currentStage = undefined;
-    overlay.replaceChildren();
-  }
-
-  function restoreTitle() {
-    title.classList.remove('is-morphing');
-  }
-
-  function disablePauseMotion() {
-    listeners.abort();
-    restoreTitle();
-    clearStages();
-    overlay.remove();
-  }
-
-  try {
-    const [{TextMorph}] = await Promise.all([import('./vendor/torph-0.1.4.js'), document.fonts.ready]);
-    title.append(overlay);
-
-    let needsLayout = true;
-    let lastProgress;
-    let frame = 0;
-
-    function buildStages() {
-      clearStages();
-      let text = '';
-      for (const [index, phrase] of phrases.entries()) {
-        // Torph uses the first update to set the starting text without animating.
-        const previousText = text || '\u200B';
-        if (index > 0) text += phrase.offsetTop === phrases[index - 1].offsetTop ? ' ' : '\n';
-        text += phrase.textContent;
-
-        const layer = document.createElement('span');
-        layer.className = 'pause-title-stage';
-        overlay.append(layer);
-        const morph = new TextMorph({element: layer, duration: morphDuration, ease: 'linear', locale: 'ru'});
-        const stage = {layer, morph, animations: []};
-        stages.push(stage);
-
-        morph.update(previousText);
-        morph.update(text);
-        stage.animations = layer.getAnimations({subtree: true});
-        for (const animation of stage.animations) {
-          animation.pause();
-          animation.currentTime = 0;
-        }
-      }
-      needsLayout = false;
-    }
-
-    function seekTitle(progress) {
-      if (needsLayout) buildStages();
-      // Each stage is the actual Torph transition between two cumulative phrases.
-      const position = progress * stages.length;
-      const index = Math.floor(position);
-      const stage = stages[index];
-      if (stage !== currentStage) {
-        currentStage?.layer.classList.remove('is-current');
-        stage.layer.classList.add('is-current');
-        currentStage = stage;
-      }
-      const time = morphDuration * clampProgress((position - index) / .88);
-      for (const animation of stage.animations) animation.currentTime = time;
-    }
-
-    function update() {
-      frame = 0;
-      if (reducedMotion.matches) {
-        restoreTitle();
-        lastProgress = undefined;
-        return;
-      }
-
-      const start = innerHeight * .9;
-      const end = innerHeight * .25;
-      const progress = clampProgress((start - title.getBoundingClientRect().top) / (start - end));
-      if (progress === lastProgress) return;
-      lastProgress = progress;
-
-      try {
-        if (progress < 1) seekTitle(progress);
-        title.classList.toggle('is-morphing', progress < 1);
-      } catch {
-        disablePauseMotion();
-      }
-    }
-
-    function scheduleUpdate() {
-      if (!frame) frame = requestAnimationFrame(update);
-    }
-
-    const {signal} = listeners;
-    window.addEventListener('scroll', scheduleUpdate, {passive: true, signal});
-    window.addEventListener('resize', () => {
-      needsLayout = true;
-      lastProgress = undefined;
-      scheduleUpdate();
-    }, {signal});
-    reducedMotion.addEventListener('change', scheduleUpdate, {signal});
-    update();
-  } catch {
-    disablePauseMotion();
-  }
-}
-
 if (!mapOnly) {
   window.addEventListener('scroll', requestPortalFrame, {passive: true});
   window.addEventListener('resize', reframePortal);
@@ -594,5 +468,4 @@ if (!mapOnly) {
   stage.querySelectorAll('a[href="#explorer"]').forEach(link => link.addEventListener('click', enterThroughPortal));
   renderPortal();
   animateHeroTitle();
-  preparePauseTitle();
 } else startMap();
