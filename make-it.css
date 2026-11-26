@@ -107,6 +107,13 @@
   background: #f6f0e6;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .relief-steps::before {
+    transform: scaleY(var(--relief-line-progress, 1));
+    transform-origin: top;
+  }
+}
+
 .relief-steps li {
   display: grid;
   grid-template-columns: 40px minmax(0, 1fr);
@@ -153,6 +160,13 @@
   .relief-steps { gap: 18px; padding-top: 22px; }
   .relief-steps::before { inset: 0 0 auto; width: auto; height: 1px; }
   .relief-steps li { min-height: 0; }
+}
+
+@media (max-width: 660px) and (prefers-reduced-motion: no-preference) {
+  .relief-steps::before {
+    transform: scaleX(var(--relief-line-progress, 1));
+    transform-origin: left;
+  }
 }
 
 .erosion-chapter::after {

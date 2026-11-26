@@ -1,5 +1,5 @@
 import Lenis from './vendor/lenis-1.3.26.js';
-import { prepareStoryReveals } from './story-reveal.js?v=4';
+import { prepareStoryReveals } from './story-reveal.js?v=relief-steps';
 
 const portal = document.querySelector('.portal');
 const stage = portal.querySelector('.portal-stage');

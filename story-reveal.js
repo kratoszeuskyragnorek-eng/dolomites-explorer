@@ -43,9 +43,14 @@ function layoutTop(element) {
 
 export function prepareStoryReveals(story) {
   const entries = [];
+  const reliefSteps = story.querySelector('.relief-steps');
+  const reliefEntries = [];
+  let reliefLineProgress = -1;
   for (const element of story.querySelectorAll([copySelector, mediaSelector, blockSelector].join(', '))) {
     const panel = element.closest('.gallery-panel');
     if (panel && panel !== element) continue;
+    const isReliefStep = element.parentElement === reliefSteps;
+    if (!isReliefStep && element.closest('.relief-steps')) continue;
 
     const isControl = element.matches(controlSelector);
     const isBlock = element.matches(blockSelector);
@@ -54,11 +59,13 @@ export function prepareStoryReveals(story) {
     if (!isBlock && !isMedia && !splitWords(element)) continue;
 
     const role = isMedia ? 'media' : isBlock ? 'block' : isHeading ? 'heading' : isControl ? 'control' : 'copy';
-    const reversible = isHeading || (role === 'copy' && element.matches('p'));
+    const reversible = isReliefStep || isHeading || (role === 'copy' && element.matches('p'));
     element.dataset.storyReveal = role;
     const order = element.matches(staggerSelector) ? Array.from(element.parentElement.children).indexOf(element) : 0;
     const stagger = (panel ? 24 : 8) * order;
-    entries.push({element, isHeading, isControl, isGalleryPanel: Boolean(panel), reversible, stagger, progress: -1});
+    const entry = {element, isHeading, isControl, isGalleryPanel: Boolean(panel), reversible, stagger, progress: -1};
+    entries.push(entry);
+    if (isReliefStep) reliefEntries.push(entry);
   }
 
   return () => {
@@ -90,6 +97,14 @@ export function prepareStoryReveals(story) {
       element.toggleAttribute('data-story-pending', progress < 1);
       if (progress < 1) element.style.setProperty('--story-reveal-progress', progress);
       else element.style.removeProperty('--story-reveal-progress');
+    }
+
+    if (reliefEntries.length) {
+      const progress = reliefEntries.reduce((sum, entry) => sum + entry.progress, 0) / reliefEntries.length;
+      if (progress !== reliefLineProgress) {
+        reliefLineProgress = progress;
+        reliefSteps.style.setProperty('--relief-line-progress', progress);
+      }
     }
   };
 }
