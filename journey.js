@@ -29,6 +29,7 @@ let loadingStartedAt = 0;
 let loadingState = 'idle';
 let loadingTimer = 0;
 let pageScroll;
+let pageScrollFrame = 0;
 let phase = story.contains(document.getElementById(location.hash.slice(1))) ? 'story' : 'cover';
 let previousScroll = window.scrollY;
 let exitAmount = 0;
@@ -422,6 +423,7 @@ function cancelPageInertia() {
 
 function syncPageScroll() {
   if (reducedMotion.matches) {
+    cancelAnimationFrame(pageScrollFrame);
     pageScroll?.destroy();
     pageScroll = undefined;
     return;
@@ -430,7 +432,6 @@ function syncPageScroll() {
   pageScroll = new Lenis({
     lerp: .1,
     wheelMultiplier: 1,
-    autoRaf: true,
     allowNestedScroll: true,
     stopInertiaOnNavigate: true,
     prevent: node => Boolean(node.closest?.('dialog, [data-native-scroll], video, input, textarea, select, [contenteditable]')),
@@ -445,6 +446,16 @@ function syncPageScroll() {
     renderPortal();
   });
   if (phase === 'map' || phase === 'leaving') pageScroll.stop();
+  let scrollTime = performance.now();
+  let previousFrame = scrollTime;
+  function step(time) {
+    // Keep the easing legible when the blurred cover delays a frame.
+    scrollTime += Math.max(0, Math.min(time - previousFrame, 50));
+    previousFrame = time;
+    pageScroll.raf(scrollTime);
+    pageScrollFrame = requestAnimationFrame(step);
+  }
+  pageScrollFrame = requestAnimationFrame(step);
 }
 
 function enterThroughPortal(event) {
