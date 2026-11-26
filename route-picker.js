@@ -113,7 +113,15 @@ function expandPanel(item) {
 }
 
 for (const item of panels) {
-  item.panel.addEventListener('pointerenter', event => {
+  const image = item.panel.querySelector('img');
+  if (!image.complete) {
+    image.toggleAttribute('data-image-pending', true);
+    const showImage = () => image.removeAttribute('data-image-pending');
+    image.addEventListener('load', () => image.decode().then(showImage, showImage), {once: true});
+    image.addEventListener('error', showImage, {once: true});
+  }
+
+  item.panel.addEventListener('pointermove', event => {
     if (event.pointerType === 'mouse') expandPanel(item);
   });
   item.button.addEventListener('click', () => expandPanel(item));

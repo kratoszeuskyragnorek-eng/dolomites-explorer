@@ -225,7 +225,26 @@
 .route-gallery .gallery-panel {
   transition:
     flex-grow var(--gallery-duration) var(--gallery-easing),
-    flex-basis var(--gallery-duration) var(--gallery-easing);
+    flex-basis var(--gallery-duration) var(--gallery-easing),
+    opacity 220ms ease-out,
+    translate 280ms var(--gallery-easing);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @starting-style {
+    .route-gallery .gallery-panel {
+      opacity: 0;
+      translate: 0 24px;
+    }
+  }
+}
+
+.gallery-panel img {
+  transition: opacity 280ms ease-out;
+}
+
+.gallery-panel img[data-image-pending] {
+  opacity: 0;
 }
 
 .route-gallery .gallery-panel[data-expanded] {

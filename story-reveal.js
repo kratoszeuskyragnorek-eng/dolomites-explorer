@@ -44,6 +44,9 @@ function layoutTop(element) {
 export function prepareStoryReveals(story) {
   const entries = [];
   for (const element of story.querySelectorAll([copySelector, mediaSelector, blockSelector].join(', '))) {
+    const panel = element.closest('.gallery-panel');
+    if (panel && panel !== element) continue;
+
     const isControl = element.matches(controlSelector);
     const isBlock = element.matches(blockSelector);
     const isMedia = element.matches(mediaSelector);
@@ -54,7 +57,8 @@ export function prepareStoryReveals(story) {
     const reversible = isHeading || (role === 'copy' && element.matches('p'));
     element.dataset.storyReveal = role;
     const order = element.matches(staggerSelector) ? Array.from(element.parentElement.children).indexOf(element) : 0;
-    entries.push({element, isHeading, isControl, reversible, stagger: 8 * order, progress: -1});
+    const stagger = (panel ? 24 : 8) * order;
+    entries.push({element, isHeading, isControl, isGalleryPanel: Boolean(panel), reversible, stagger, progress: -1});
   }
 
   return () => {
@@ -65,13 +69,14 @@ export function prepareStoryReveals(story) {
 
     // Read layout positions before updating presentation. Moving elements keep the same scroll range.
     for (const entry of entries) {
-      const {element, isHeading, isControl, reversible, stagger} = entry;
+      const {element, isHeading, isControl, isGalleryPanel, reversible, stagger} = entry;
       if (!reversible && entry.progress === 1) continue;
       const top = layoutTop(element) + stagger;
       const naturalStart = top - viewportHeight * (isHeading ? .85 : .98);
+      const revealEnd = isGalleryPanel ? .48 : isControl ? .78 : .64;
       const naturalEnd = isHeading
         ? top + element.offsetHeight - viewportHeight * .65
-        : top - viewportHeight * (isControl ? .78 : .64);
+        : top - viewportHeight * revealEnd;
       const end = Math.min(naturalEnd, endOfPage);
       const start = Math.min(naturalStart, end - 48);
       const spatial = clampProgress((position - start) / (end - start));

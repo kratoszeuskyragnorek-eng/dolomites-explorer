@@ -1,4 +1,4 @@
-import { prepareStoryReveals } from './story-reveal.js?v=3';
+import { prepareStoryReveals } from './story-reveal.js?v=4';
 
 const portal = document.querySelector('.portal');
 const stage = portal.querySelector('.portal-stage');
