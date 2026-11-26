@@ -1,3 +1,4 @@
+import Lenis from './vendor/lenis-1.3.26.js';
 import { prepareStoryReveals } from './story-reveal.js?v=4';
 
 const portal = document.querySelector('.portal');
@@ -27,6 +28,7 @@ const continueScrollThreshold = 660;
 let loadingStartedAt = 0;
 let loadingState = 'idle';
 let loadingTimer = 0;
+let pageScroll;
 let phase = story.contains(document.getElementById(location.hash.slice(1))) ? 'story' : 'cover';
 let previousScroll = window.scrollY;
 let exitAmount = 0;
@@ -253,6 +255,7 @@ function animateHeroTitle() {
 function lockMap() {
   const mapPosition = window.scrollY + explorer.getBoundingClientRect().top;
   phase = 'map';
+  pageScroll?.stop();
   exitAmount = 0;
   lastExitInput = 0;
   resetMapContinue();
@@ -284,6 +287,7 @@ function leaveMap(direction) {
     phase = direction > 0 ? 'story' : 'cover';
     previousScroll = window.scrollY;
     root.classList.remove('map-gated');
+    pageScroll?.start();
     story.inert = false;
     history.replaceState(null, '', `#${target.id}`);
     target.focus({preventScroll: true});
@@ -370,6 +374,7 @@ function handleWheel(event) {
 let swipe = null;
 function startSwipe(event) {
   cancelEntry();
+  cancelPageInertia();
   const point = event.touches[0];
   swipe = event.touches.length === 1 && canLeaveMap() &&
     !event.target.closest?.('.settings')
@@ -390,6 +395,9 @@ function endSwipe(event) {
 
 function handleKeys(event) {
   cancelEntry();
+  if (['Tab', 'ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Home', 'End', ' '].includes(event.key)) {
+    cancelPageInertia();
+  }
   if (!canLeaveMap() || event.target.closest?.('input, select, textarea, [contenteditable]')) return;
   if (event.key === 'PageDown' || event.key === 'PageUp') {
     event.preventDefault();
@@ -406,10 +414,44 @@ function cancelEntry() {
   entryFrame = 0;
 }
 
+function cancelPageInertia() {
+  if (pageScroll?.isScrolling !== 'smooth') return;
+  pageScroll.stop();
+  pageScroll.start();
+}
+
+function syncPageScroll() {
+  if (reducedMotion.matches) {
+    pageScroll?.destroy();
+    pageScroll = undefined;
+    return;
+  }
+  if (pageScroll) return;
+  pageScroll = new Lenis({
+    lerp: .1,
+    wheelMultiplier: 1,
+    autoRaf: true,
+    allowNestedScroll: true,
+    stopInertiaOnNavigate: true,
+    prevent: node => Boolean(node.closest?.('dialog, [data-native-scroll], video, input, textarea, select, [contenteditable]')),
+    virtualScroll: ({event, deltaX, deltaY}) =>
+      (phase === 'cover' || phase === 'story') && !entryFrame && !event.defaultPrevented &&
+      (event.type !== 'wheel' || (event.cancelable && !event.shiftKey && !event.metaKey && Math.abs(deltaY) >= Math.abs(deltaX)))
+  });
+  pageScroll.on('scroll', () => {
+    if (pageScroll.isScrolling !== 'smooth') return;
+    // Advance the story effects and lock the map before the scrolled frame is painted.
+    cancelAnimationFrame(renderFrame);
+    renderPortal();
+  });
+  if (phase === 'map' || phase === 'leaving') pageScroll.stop();
+}
+
 function enterThroughPortal(event) {
   if (reducedMotion.matches || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
   event.preventDefault();
   cancelEntry();
+  cancelPageInertia();
   const from = window.scrollY;
   const to = from + explorer.getBoundingClientRect().top;
   const start = performance.now();
@@ -431,9 +473,14 @@ function enterThroughPortal(event) {
 }
 
 if (!mapOnly) {
-  window.addEventListener('scroll', requestPortalFrame, {passive: true});
+  window.addEventListener('scroll', () => {
+    if (pageScroll?.isScrolling !== 'smooth') requestPortalFrame();
+  }, {passive: true});
   window.addEventListener('resize', reframePortal);
-  reducedMotion.addEventListener('change', reframePortal);
+  reducedMotion.addEventListener('change', () => {
+    syncPageScroll();
+    reframePortal();
+  });
   window.addEventListener('wheel', handleWheel, {capture: true, passive: false});
   explorer.addEventListener('pointerenter', handleContinueHover, {passive: true});
   explorer.addEventListener('pointermove', handleContinueHover, {passive: true});
@@ -455,6 +502,7 @@ if (!mapOnly) {
   document.addEventListener('click', async event => {
     const link = event.target.closest?.('a[href^="#"]');
     if (!link || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    cancelPageInertia();
     if (link.id === 'map-home') {
       event.preventDefault();
       if (document.fullscreenElement) await document.exitFullscreen().catch(() => {});
@@ -467,5 +515,6 @@ if (!mapOnly) {
   });
   stage.querySelectorAll('a[href="#explorer"]').forEach(link => link.addEventListener('click', enterThroughPortal));
   renderPortal();
+  syncPageScroll();
   animateHeroTitle();
 } else startMap();
