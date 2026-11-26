@@ -51,9 +51,10 @@ export function prepareStoryReveals(story) {
     if (!isBlock && !isMedia && !splitWords(element)) continue;
 
     const role = isMedia ? 'media' : isBlock ? 'block' : isHeading ? 'heading' : isControl ? 'control' : 'copy';
+    const reversible = isHeading || (role === 'copy' && element.matches('p'));
     element.dataset.storyReveal = role;
     const order = element.matches(staggerSelector) ? Array.from(element.parentElement.children).indexOf(element) : 0;
-    entries.push({element, isHeading, isControl, stagger: 8 * order, progress: -1});
+    entries.push({element, isHeading, isControl, reversible, stagger: 8 * order, progress: -1});
   }
 
   return () => {
@@ -64,8 +65,8 @@ export function prepareStoryReveals(story) {
 
     // Read layout positions before updating presentation. Moving elements keep the same scroll range.
     for (const entry of entries) {
-      if (!entry.isHeading && entry.progress === 1) continue;
-      const {element, isHeading, isControl, stagger} = entry;
+      const {element, isHeading, isControl, reversible, stagger} = entry;
+      if (!reversible && entry.progress === 1) continue;
       const top = layoutTop(element) + stagger;
       const naturalStart = top - viewportHeight * (isHeading ? .85 : .98);
       const naturalEnd = isHeading
@@ -74,7 +75,7 @@ export function prepareStoryReveals(story) {
       const end = Math.min(naturalEnd, endOfPage);
       const start = Math.min(naturalStart, end - 48);
       const spatial = clampProgress((position - start) / (end - start));
-      const progress = isHeading ? spatial : Math.max(entry.progress, spatial);
+      const progress = reversible ? spatial : Math.max(entry.progress, spatial);
       if (progress !== entry.progress) changes.push([entry, progress]);
     }
 
